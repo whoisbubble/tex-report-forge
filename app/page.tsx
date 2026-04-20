@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import {
   buildFullTex,
   createBlock,
@@ -20,6 +20,8 @@ import {
 } from "@/lib/report";
 
 const storageKey = "tex-report-forge-draft";
+const projectFileApp = "tex-report-forge";
+const projectFileVersion = 1;
 
 const blockLabels: Record<ReportBlock["type"], string> = {
   text: "Текст",
@@ -61,7 +63,9 @@ export default function Home() {
   const [currentLevel, setCurrentLevel] = useState<SectionLevel>(0);
   const [generatedSnapshot, setGeneratedSnapshot] = useState("");
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
+  const [projectStatus, setProjectStatus] = useState<"idle" | "saved" | "loaded" | "error">("idle");
   const [loaded, setLoaded] = useState(false);
+  const projectInputRef = useRef<HTMLInputElement>(null);
 
   const tex = useMemo(() => buildFullTex(draft), [draft]);
   const isTexDirty = generatedSnapshot !== "" && generatedSnapshot !== tex;
@@ -93,6 +97,13 @@ export default function Home() {
     const timer = window.setTimeout(() => setCopyStatus("idle"), 1800);
     return () => window.clearTimeout(timer);
   }, [copyStatus]);
+
+  useEffect(() => {
+    if (projectStatus === "idle") return;
+
+    const timer = window.setTimeout(() => setProjectStatus("idle"), 2200);
+    return () => window.clearTimeout(timer);
+  }, [projectStatus]);
 
   function updateMeta(key: keyof ReportMeta, value: string | boolean) {
     setDraft((previous) => ({
@@ -280,6 +291,56 @@ export default function Home() {
     URL.revokeObjectURL(url);
   }
 
+  function downloadDraftProject() {
+    const payload = {
+      app: projectFileApp,
+      version: projectFileVersion,
+      savedAt: new Date().toISOString(),
+      draft
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json;charset=utf-8"
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const date = new Date().toISOString().slice(0, 10);
+
+    link.href = url;
+    link.download = `tex-report-project-${date}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    setProjectStatus("saved");
+  }
+
+  async function uploadDraftProject(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as unknown;
+      const importedDraft = extractDraftFromProjectFile(parsed);
+
+      if (!importedDraft) {
+        throw new Error("Invalid project file");
+      }
+
+      if (!window.confirm("Загрузить проект из файла? Текущий черновик будет заменён.")) return;
+
+      setDraft(importedDraft);
+      setCurrentLevel(0);
+      setGeneratedSnapshot("");
+      setProjectStatus("loaded");
+    } catch {
+      setProjectStatus("error");
+      window.alert("Не получилось загрузить проект. Проверьте, что выбран JSON-файл этого редактора.");
+    }
+  }
+
   function loadExample() {
     if (!window.confirm("Загрузить пример? Текущий черновик будет заменён.")) return;
     setDraft(createExampleDraft());
@@ -304,6 +365,23 @@ export default function Home() {
           <button className="button primary" type="button" onClick={generateTex}>
             {generatedSnapshot ? "Обновить .tex" : "Сгенерировать .tex"}
           </button>
+          <button className="button ghost" type="button" onClick={downloadDraftProject}>
+            {projectStatus === "saved" ? "Проект сохранён" : "Сохранить проект"}
+          </button>
+          <button className="button ghost" type="button" onClick={() => projectInputRef.current?.click()}>
+            {projectStatus === "loaded"
+              ? "Проект загружен"
+              : projectStatus === "error"
+                ? "Ошибка загрузки"
+                : "Загрузить проект"}
+          </button>
+          <input
+            ref={projectInputRef}
+            accept="application/json,.json"
+            hidden
+            type="file"
+            onChange={uploadDraftProject}
+          />
           <button className="button ghost" type="button" onClick={loadExample}>
             Загрузить пример
           </button>
@@ -536,6 +614,40 @@ export default function Home() {
       </section>
     </main>
   );
+}
+
+function extractDraftFromProjectFile(value: unknown): ReportDraft | null {
+  if (isReportDraft(value)) {
+    return value;
+  }
+
+  if (isRecord(value) && isReportDraft(value.draft)) {
+    return value.draft;
+  }
+
+  return null;
+}
+
+function isReportDraft(value: unknown): value is ReportDraft {
+  if (!isRecord(value) || !isRecord(value.meta) || !Array.isArray(value.sections)) {
+    return false;
+  }
+
+  return value.sections.every((section) => {
+    if (!isRecord(section) || typeof section.id !== "string" || typeof section.title !== "string") {
+      return false;
+    }
+
+    if (![0, 1, 2].includes(Number(section.level)) || !Array.isArray(section.blocks)) {
+      return false;
+    }
+
+    return section.blocks.every((block) => isRecord(block) && typeof block.id === "string" && typeof block.type === "string");
+  });
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }
 
 function BlockEditor({
