@@ -151,23 +151,27 @@ export function createSection(level: SectionLevel, title = "Новый разд�
 
 export function createInitialDraft(): ReportDraft {
   return {
-    meta: defaultMeta,
+    meta: { ...defaultMeta },
     sections: [
       {
-        ...createSection(0, "Задание"),
+        id: "section-task",
+        title: "Задание",
+        level: 0,
         blocks: [
           {
-            id: makeId("block"),
+            id: "block-task-text",
             type: "text",
             content: "здесь вписать задание"
           }
         ]
       },
       {
-        ...createSection(0, "Ход работы"),
+        id: "section-work",
+        title: "Ход работы",
+        level: 0,
         blocks: [
           {
-            id: makeId("block"),
+            id: "block-work-text",
             type: "text",
             content: "Опишите ход выполнения работы."
           }
