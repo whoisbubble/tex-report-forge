@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta charset="UTF-8">
+  <title>MakeTexChigga · latex report forge</title>
+  <link rel="icon" type="image/x-icon" href="https://chigga.ru/faviconchigga.ico">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-elevated: #161b22;
+      --bg-soft: #1c2230;
+      --border-subtle: #30363d;
+      --accent: #2f81f7;
+      --accent-soft: rgba(46, 160, 255, 0.15);
+      --text-main: #e6edf3;
+      --text-muted: #8b949e;
+      --text-subtle: #6e7681;
+      --danger: #f85149;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text-main);
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border-subtle);
+      background: #010409;
+      padding: 10px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .title-line h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .title-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(46, 160, 255, 0.4);
+      background: rgba(46, 160, 255, 0.08);
+      color: #c9d1d9;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    main {
+      max-width: 1120px;
+      margin: 18px auto 24px;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.6fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 960px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      padding: 14px 16px 16px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-subtle);
+      background: #0d1117;
+    }
+
+    .hint {
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    label {
+      font-size: 12px;
+      display: block;
+      margin-bottom: 3px;
+      color: var(--text-subtle);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      background: #0d1117;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      padding: 6px 9px;
+      font-size: 13px;
+      color: var(--text-main);
+      transition: border 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-soft);
+      background: #010409;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .field {
+      margin-bottom: 8px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .row > div {
+      flex: 1;
+    }
+
+    .checkbox-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .checkbox-line input[type="checkbox"] {
+      margin: 0;
+      accent-color: var(--accent);
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border-subtle);
+      margin: 12px 0 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #238636;
+      color: #ffffff;
+      transition: background 0.15s, transform 0.05s, box-shadow 0.15s;
+      box-shadow: 0 4px 10px rgba(35, 134, 54, 0.4);
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background: #2ea043;
+      box-shadow: 0 6px 14px rgba(35, 134, 54, 0.55);
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 3px 7px rgba(35, 134, 54, 0.4);
+    }
+
+    button.secondary {
+      background: #21262d;
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      box-shadow: none;
+    }
+
+    button.secondary:hover {
+      background: #30363d;
+      box-shadow: none;
+    }
+
+    button.danger {
+      background: var(--danger);
+      box-shadow: 0 4px 10px rgba(248, 81, 73, 0.45);
+    }
+
+    button.danger:hover {
+      background: #ff6a63;
+      box-shadow: 0 6px 14px rgba(248, 81, 73, 0.6);
+    }
+
+    .section-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 430px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-top: 6px;
+    }
+
+    .section-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .section-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .section-list::-webkit-scrollbar-thumb {
+      background: #30363d;
+      border-radius: 999px;
+    }
+
+    .section-block {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 9px 9px;
+      background: var(--bg-soft);
+      margin-bottom: 4px;
+    }
+
+    .section-block.level-1 {
+      margin-left: 16px;
+      border-style: dashed;
+      background: #141a26;
+    }
+
+    .section-block.level-2 {
+      margin-left: 32px;
+      border-style: dotted;
+      background: #121624;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .section-header span {
+      font-size: 11px;
+      color: var(--text-subtle);
+    }
+
+    .section-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 6px 0;
+    }
+
+    .block {
+      border-radius: var(--radius-md);
+      border: 1px dashed var(--border-subtle);
+      padding: 7px;
+      margin-top: 5px;
+      background: #0d1117;
+    }
+
+    .block-title {
+      font-size: 11px;
+      color: var(--text-subtle);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .output-card textarea {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 12px;
+      min-height: 430px;
+      white-space: pre;
+    }
+
+    .output-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .output-actions small {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .empty-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 10px 16px 14px;
+      margin-top: auto;
+      background: #0b1016;
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .footer-inner a {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .level-indicator {
+      font-size: 11px;
+      color: var(--text-subtle);
+      margin-top: 4px;
+    }
+
+    .example-btn {
+      background: #8957e5 !important;
+      box-shadow: 0 4px 10px rgba(137, 87, 229, 0.4) !important;
+    }
+
+    .example-btn:hover {
+      background: #9d6ef0 !important;
+      box-shadow: 0 6px 14px rgba(137, 87, 229, 0.55) !important;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="header-main">
+      <div class="title-line">
+        <h1>MakeTexChigga</h1>
+        <span class="title-badge">latex report forge</span>
+      </div>
+      <div class="subtitle">
+        Генератор .tex под отчётный шаблон DVGUPS (pdfLaTeX, 14pt, Times)
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Левая колонка: титул + разделы -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Титульный лист</h2>
+      <span class="chip">meta</span>
+    </div>
+    <p class="hint">
+      Заполни шапку один раз, дальше будешь только разделы добавлять. Всё заточено под твой шаблон: Times, 14pt, поля, подписи.
+    </p>
+
+    <!-- Титульный лист -->
+    <div class="field">
+      <label>Кафедра</label>
+      <input type="text" id="kafedra" value="Информационные технологии и системы">
+    </div>
+
+    <div class="field">
+      <label>Тема работы</label>
+      <input type="text" id="tema" value="Анализ ИС">
+    </div>
+
+    <div class="field">
+      <label>Вид работы (строка под темой)</label>
+      <input type="text" id="vid_raboty" value="Практическая работа №2">
+    </div>
+
+    <div class="field">
+      <label>Дисциплина</label>
+      <input type="text" id="disciplina" value="Теория информационных процессов и систем">
+    </div>
+
+    <div class="field">
+      <label>Строка шифра (группа / код / вариант / ЛР)</label>
+      <input type="text" id="shapka_stroka" value="ПР 09.03.02. 17.02.БО231ИСТ">
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Подпись слева для студента</label>
+        <input type="text" id="student_label" value="Студент">
+      </div>
+      <div class="field">
+        <label>Подпись слева для руководителя</label>
+        <input type="text" id="rukovoditel_label" value="Проверил">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Студент (ФИО, можно с LaTeX-форматированием)</label>
+        <input type="text" id="student" value="Т.П.~Чигирёв">
+      </div>
+      <div class="field">
+        <label>Руководитель (ФИО, как в LaTeX)</label>
+        <input type="text" id="rukovoditel" value="О.В.~Рыбкина">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Должность руководителя (например: доцент, к.т.н.)</label>
+      <input type="text" id="rukovoditel_dolzhnost">
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Город (внизу титульника)</label>
+        <input type="text" id="city" value="Хабаровск">
+      </div>
+      <div class="field">
+        <label>Год</label>
+        <input type="number" id="god" value="2025">
+      </div>
+    </div>
+
+    <div class="checkbox-line">
+      <input type="checkbox" id="toc">
+      <label for="toc" style="margin:0;">Добавить оглавление (\tableofcontents + \addcontentsline для разделов и подразделов)</label>
+    </div>
+
+    <hr>
+
+    <div class="card-header" style="margin-top:4px;">
+      <h2>Разделы</h2>
+      <span class="chip">sections / levels</span>
+    </div>
+    <p class="hint">
+      Уровни: 0 — \section*, 1 — \subsection*, 2 — \subsubsection*.  
+      «Добавить раздел» — на текущем уровне. «Уровнем ниже» — опуститься и создать там. Чтобы вернуться — жми «Уровнем выше».
+    </p>
+
+    <div id="sections" class="section-list"><div class="section-block level-0"><div class="section-header"><div><label style="margin-bottom: 2px;">Заголовок раздела</label><input type="text" value="Задание"></div><div><span>id 1, уровень 0</span></div></div><div class="section-actions"><button type="button" class="secondary">+ Текст</button><button type="button" class="secondary">+ Рисунок</button><button type="button" class="secondary">+ Код</button><button type="button" class="secondary">+ Таблица</button><button type="button" class="secondary">+ Список</button><button type="button" class="secondary">+ Разрыв страницы</button><button type="button" class="danger">Удалить раздел</button></div><div class="block"><div class="block-title"><span>Текстовый блок</span><button type="button" class="secondary" style="padding: 2px 8px; font-size: 11px;" title="Удалить блок">×</button></div><textarea placeholder="Текст раздела...">здесь вписать задание</textarea></div></div><div class="section-block level-0"><div class="section-header"><div><label style="margin-bottom: 2px;">Заголовок раздела</label><input type="text" value="Ход работы"></div><div><span>id 2, уровень 0</span></div></div><div class="section-actions"><button type="button" class="secondary">+ Текст</button><button type="button" class="secondary">+ Рисунок</button><button type="button" class="secondary">+ Код</button><button type="button" class="secondary">+ Таблица</button><button type="button" class="secondary">+ Список</button><button type="button" class="secondary">+ Разрыв страницы</button><button type="button" class="danger">Удалить раздел</button></div><div class="block"><div class="block-title"><span>Рисунок</span><button type="button" class="secondary" style="padding: 2px 8px; font-size: 11px;" title="Удалить блок">×</button></div><div class="row"><div><label>Имя файла (в папке images/)</label><input type="text" value="ris1.png"></div><div><label>Подпись к рисунку (только текст после «- »)</label><input type="text" value="аот так рисунок выглядит"></div></div><p class="hint" style="margin-top: 4px;">Файл сам положи в папку images рядом с .tex, например images/ris1.png.</p></div><div class="block"><div class="block-title"><span>Код</span><button type="button" class="secondary" style="padding: 2px 8px; font-size: 11px;" title="Удалить блок">×</button></div><div class="field"><label>Подпись к коду (после «Код n - ...»)</label><input type="text" value="так код какойто"></div><textarea placeholder="Сюда кидаешь код (как есть, LaTeX его съест через listings)...">console.writeline("1");</textarea></div><div class="block"><div class="block-title"><span>Таблица</span><button type="button" class="secondary" style="padding: 2px 8px; font-size: 11px;" title="Удалить блок">×</button></div><div class="row"><div><label>Подпись к таблице (после «Таблица n - ...»)</label><input type="text" value="таблица так"></div><div><label>Количество столбцов (0 = авто по первой строке)</label><input type="number" min="0" value="2"></div></div><textarea placeholder="Данные таблицы.
+Каждая строка — отдельная строка таблицы.
+Ячейки разделяй точкой с запятой (;)
+Пример:
+Объект;Структура;Состояния
+Рейс;Номер, маршрут;Задержан / отменён">пися;попа</textarea></div><div class="block"><div class="block-title"><span>Список</span><button type="button" class="secondary" style="padding: 2px 8px; font-size: 11px;" title="Удалить блок">×</button></div><div class="checkbox-line"><input type="checkbox" checked="checked"><span>Нумерованный список (если выключено — маркированный)</span></div><div class="field"><div class="row"><div><input type="text" placeholder="Объект 1 (например: Мотоцикл)" value="объект"></div><div><input type="text" placeholder="Текст 1 (например: это круто)" value="123аымвамвам"></div></div><button type="button" class="secondary" style="margin-top: 4px;">+ Пункт</button></div></div></div><div class="section-block level-1"><div class="section-header"><div><label style="margin-bottom: 2px;">Подзаголовок (уровень 1)</label><input type="text" value="А это раздел уровнем ниже"></div><div><span>id 3, уровень 1</span></div></div><div class="section-actions"><button type="button" class="secondary">+ Текст</button><button type="button" class="secondary">+ Рисунок</button><button type="button" class="secondary">+ Код</button><button type="button" class="secondary">+ Таблица</button><button type="button" class="secondary">+ Список</button><button type="button" class="secondary">+ Разрыв страницы</button><button type="button" class="danger">Удалить раздел</button></div></div></div>
+
+    <div class="level-indicator" id="level-indicator">Текущий уровень: 1 (\subsection*)</div>
+
+    <div style="margin-top:10px; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="add-section-btn" type="button">+ Добавить раздел</button>
+        <button id="add-section-lower-btn" type="button" class="secondary">+ Добавить раздел уровнем ниже</button>
+        <button id="level-up-btn" type="button" class="secondary">↑ Подняться уровнем выше</button>
+        <button id="example-btn" type="button" class="example-btn">📋 Пример</button>
+      </div>
+      <button class="secondary" type="button" id="clear-all-btn">Очистить всё</button>
+    </div>
+  </div>
+
+  <!-- Правая колонка: результат -->
+  <div class="card output-card">
+    <div class="card-header">
+      <h2>.tex результат</h2>
+      <span class="chip">preview</span>
+    </div>
+    <p class="hint">
+      Здесь полный LaTeX: преамбула, титульник, оглавление (если 
+включено), разделы, подпункты, рисунки, код, таблицы, списки, разрывы 
+страниц.
+      Можно сразу кидать в <a href="https://www.overleaf.com/" target="_blank" rel="noopener">Overleaf</a> или компилировать локально.
+    </p>
+
+    <div class="output-actions">
+      <div>
+        <button type="button" id="generate-btn">Сгенерировать .tex</button>
+        <button type="button" class="secondary" id="download-btn">Скачать .tex</button>
+      </div>
+      <small>
+        Подсказка: на <a href="https://www.overleaf.com/" target="_blank" rel="noopener">Overleaf</a> создаёшь пустой проект, 
+        вставляешь этот .tex, добавляешь папку <code>images/</code> с рисунками и жмёшь Recompile.
+      </small>
+    </div>
+
+    <textarea id="output-tex" spellcheck="false">\documentclass[14pt]{extarticle}
+
+% ===== Русский язык и шрифты (pdfLaTeX) =====
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\addto\captionsrussian{\renewcommand{\contentsname}{Оглавление}}
+\usepackage{mathptmx} % шрифт в стиле Times
+\usepackage{caption}
+\usepackage{xcolor}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[R]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+}
+
+\usepackage{float}
+
+\captionsetup[figure]{
+    name={Рисунок},
+    labelsep={space},
+    justification=centering,
+    singlelinecheck=false
+}
+
+% ===== Поля, интервалы, абзацы =====
+\usepackage{geometry}
+\geometry{
+  a4paper,
+  left=3cm,
+  right=1.5cm,
+  top=2cm,
+  bottom=2cm
+}
+
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{indentfirst}
+\setlength{\parindent}{1.25cm}
+
+% ===== Картинки =====
+\usepackage{graphicx}
+\graphicspath{{images/}} % папка для скринов (создай её в проекте)
+
+\usepackage{caption}
+
+% ===== Оглавление (точки и чуть меньший шрифт) =====
+\usepackage{tocloft}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsecfont}{\normalsize}
+\renewcommand{\cftsecpagefont}{\normalsize}
+\renewcommand{\cftsubsecfont}{\normalsize}
+\renewcommand{\cftsubsecpagefont}{\normalsize}
+\renewcommand{\cftsubsubsecfont}{\normalsize}
+\renewcommand{\cftsubsubsecpagefont}{\normalsize}
+\renewcommand{\cfttoctitlefont}{\hfill\large\bfseries}
+\renewcommand{\cftaftertoctitle}{\hfill}
+\setlength{\cftbeforesecskip}{4pt}
+\setlength{\cftbeforesubsecskip}{2pt}
+\setlength{\cftbeforesubsubsecskip}{1pt}
+
+% ===== Код (листинги) =====
+\usepackage{listings}
+\DeclareCaptionLabelFormat{nolabel}{}
+\captionsetup[lstlisting]{labelformat=nolabel}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  captionpos=b,
+  tabsize=2,
+  columns=fullflexible
+}
+
+% ===== Настройка размеров заголовков =====
+\usepackage{titlesec}
+
+% Настройка размера раздела (section)
+\titleformat{\section}
+  {\normalfont\normalsize\bfseries}
+  {\thesection}{1em}{}
+
+\titleformat{\subsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsection}{1em}{}
+
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsection}{1em}{}
+
+% Настройка отступов вокруг заголовков
+\titlespacing*{\section}{0.8cm}{12pt}{1.5cm} % {красная строка}{сверху}{снизу (большой)}
+\titlespacing*{\subsection}{0.8cm}{12pt}{12pt} % {красная строка}{сверху}{снизу (средний)}
+\titlespacing*{\subsubsection}{0.8cm}{12pt}{6pt} % {красная строка}{сверху}{снизу (маленький)}
+
+% Уменьшение красной строки для обычного текста
+\setlength{\parindent}{0.8cm} % было 1.25cm, стало 0.8cm
+
+\begin{document}
+
+
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{center}
+Министерство транспорта Российской Федерации\\
+Федеральное агентство железнодорожного транспорта\\[0.2em]
+
+Федеральное государственное бюджетное образовательное учреждение\\
+высшего образования\\
+«Дальневосточный государственный университет путей сообщения»\\[0.2em]
+
+Кафедра «Информационные технологии и системы»
+\vfill
+
+{\bfseries
+\large ОРГАНИЗАЦИЯ IP-ТЕЛЕФОНИИ НА ОСНОВЕ ОТЕЧЕСТВЕННЫХ РЕШЕНИЙ\\[0.3em]
+\large Практическая работа №2
+}\\[0.3em]
+
+\large дисциплина «Теория информационных процессов и систем»\\
+\Large ПР 09.03.02. 17.02.БО231ИСТ
+\large
+\vfill
+
+\begin{center}
+\begin{minipage}{\textwidth}
+  \setlength{\tabcolsep}{0pt}
+  \begin{tabular}{@{}p{4cm}p{9cm}p{4cm}@{}}
+    Студент
+      &amp; \centering\hrulefill
+      &amp; \centering Т.П.~Чигирёв \\[0em]
+  \end{tabular}
+\end{minipage}
+\end{center}
+
+\vspace{-25pt}
+\small\textit{(подпись, дата)}
+\large
+
+\begin{center}
+\begin{minipage}{\textwidth}
+  \setlength{\tabcolsep}{0pt}
+  \begin{tabular}{@{}p{4cm}p{9cm}p{4cm}@{}}
+    Проверил
+      &amp; \centering\hrulefill
+      &amp; \centering О.В.~Рыбкина \\[0em]
+  \end{tabular}
+\end{minipage}
+\end{center}
+
+\vspace{-20pt}
+\small\textit{(подпись, дата)}
+\normalsize
+
+\vfill
+\normalsize Хабаровск 2025
+\end{center}
+\end{titlepage}
+
+\setcounter{page}{2}
+
+% ================== ОСНОВНАЯ ЧАСТЬ ==================
+
+\section*{Задание}
+\addcontentsline{toc}{section}{Задание}
+
+
+здесь вписать задание
+
+\section*{Ход работы}
+\addcontentsline{toc}{section}{Ход работы}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{ris1.png}
+    \caption{- аот так рисунок выглядит}
+\end{figure}
+
+
+\begin{lstlisting}[caption={Код 1 - так код какойто}]
+console.writeline("1");
+\end{lstlisting}
+
+
+\begin{table}[H]
+\caption*{\hfill \textbf{Таблица 1 - таблица так}}
+\centering
+\begin{tabular}{|c|c|}
+\hline
+пися &amp; попа \\
+\hline
+\end{tabular}
+\end{table}
+
+
+\begin{enumerate}
+\item объект\\
+123аымвамвам
+\end{enumerate}
+
+\subsection*{А это раздел уровнем ниже}
+\addcontentsline{toc}{subsection}{А это раздел уровнем ниже}
+
+
+\end{document}
+</textarea>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <span>MakeTexChigga построен для отчётов под DVGUPS-шаблон.</span>
+    <span>Вопросы? Пиши в ТГ: <a href="https://t.me/puppylittle" target="_blank" rel="noopener">@puppylittle</a></span>
+  </div>
+</footer>
+
+<script>
+  // ===== Модель документа =====
+  let sections = [];
+  let sectionCounter = 0;
+  let figureCounter = 1;
+  let codeCounter = 1;
+  let tableCounter = 1;
+  let currentLevel = 0; // 0 = section, 1 = subsection, 2 = subsubsection
+
+  const sectionsContainer = document.getElementById('sections');
+  const outputTex = document.getElementById('output-tex');
+  const levelIndicator = document.getElementById('level-indicator');
+
+  function levelLabel(level) {
+    if (level === 0) return '0 (\\section*)';
+    if (level === 1) return '1 (\\subsection*)';
+    return '2 (\\subsubsection*)';
+  }
+
+  function updateLevelIndicator() {
+    levelIndicator.textContent = 'Текущий уровень: ' + levelLabel(currentLevel);
+  }
+
+  function createSection(customLevel = null) {
+    const lvl = customLevel !== null ? customLevel : currentLevel;
+    const id = ++sectionCounter;
+    sections.push({
+      id,
+      title: 'Новый раздел',
+      level: lvl,
+      blocks: [] // {type: "text"|"figure"|"code"|"table"|"list"|"pagebreak", ...}
+    });
+    renderSections();
+  }
+
+  function addSectionLower() {
+    if (currentLevel < 2) currentLevel++;
+    createSection(currentLevel);
+    updateLevelIndicator();
+  }
+
+  function levelUp() {
+    if (currentLevel > 0) currentLevel--;
+    updateLevelIndicator();
+  }
+
+  function findSectionById(id) {
+    return sections.find(s => s.id === id) || null;
+  }
+
+  function removeSection(id) {
+    sections = sections.filter(s => s.id !== id);
+    renderSections();
+  }
+
+  function addTextBlock(sectionId) {
+    const section = findSectionById(sectionId);
+    if (!section) return;
+    section.blocks.push({
+      type: 'text',
+      content: ''
+    });
+    renderSections();
+  }
+
+  function addFigureBlock(sectionId) {
+    const section = findSectionById(sectionId);
+    if (!section) return;
+    const fname = `ris${figureCounter}.png`;
+    section.blocks.push({
+      type: 'figure',
+      filename: fname,
+      caption: ''
+    });
+    figureCounter++;
+    renderSections();
+  }
+
+  function addCodeBlock(sectionId) {
+    const section = findSectionById(sectionId);
+    if (!section) return;
+    section.blocks.push({
+      type: 'code',
+      caption: '',
+      code: ''
+    });
+    renderSections();
+  }
+
+  function addTableBlock(sectionId) {
+    const section = findSectionById(sectionId);
+    if (!section) return;
+    section.blocks.push({
+      type: 'table',
+      caption: '',
+      cols: '',
+      data: ''
+    });
+    renderSections();
+  }
+
+  function addListBlock(sectionId) {
+    const section = findSectionById(sectionId);
+    if (!section) return;
+    section.blocks.push({
+      type: 'list',
+      ordered: true,
+      items: [{ label: '', text: '' }]
+    });
+    renderSections();
+  }
+
+  function addPageBreak(sectionId) {
+    const section = findSectionById(sectionId);
+    if (!section) return;
+    section.blocks.push({
+      type: 'pagebreak'
+    });
+    renderSections();
+  }
+
+  function updateSectionTitle(id, value) {
+    const s = findSectionById(id);
+    if (s) s.title = value;
+  }
+
+  function updateTextBlock(sectionId, blockIndex, value) {
+    const s = findSectionById(sectionId);
+    if (!s) return;
+    const b = s.blocks[blockIndex];
+    if (b && b.type === 'text') {
+      b.content = value;
+    }
+  }
+
+  function updateFigureBlock(sectionId, blockIndex, field, value) {
+    const s = findSectionById(sectionId);
+    if (!s) return;
+    const b = s.blocks[blockIndex];
+    if (b && b.type === 'figure') {
+      b[field] = value;
+    }
+  }
+
+  function updateCodeBlock(sectionId, blockIndex, field, value) {
+    const s = findSectionById(sectionId);
+    if (!s) return;
+    const b = s.blocks[blockIndex];
+    if (b && b.type === 'code') {
+      b[field] = value;
+    }
+  }
+
+  function updateTableBlock(sectionId, blockIndex, field, value) {
+    const s = findSectionById(sectionId);
+    if (!s) return;
+    const b = s.blocks[blockIndex];
+    if (b && b.type === 'table') {
+      b[field] = value;
+    }
+  }
+
+  function toggleListOrdered(sectionId, blockIndex, ordered) {
+    const s = findSectionById(sectionId);
+    if (!s) return;
+    const b = s.blocks[blockIndex];
+    if (b && b.type === 'list') {
+      b.ordered = ordered;
+    }
+  }
+
+  function updateListItem(sectionId, blockIndex, itemIndex, field, value) {
+    const s = findSectionById(sectionId);
+    if (!s) return;
+    const b = s.blocks[blockIndex];
+    if (b && b.type === 'list') {
+      b.items[itemIndex][field] = value;
+    }
+  }
+
+  function addListItem(sectionId, blockIndex) {
+    const s = findSectionById(sectionId);
+    if (!s) return;
+    const b = s.blocks[blockIndex];
+    if (b && b.type === 'list') {
+      b.items.push({ label: '', text: '' });
+    }
+    renderSections();
+  }
+
+  function removeBlock(sectionId, blockIndex) {
+    const s = findSectionById(sectionId);
+    if (!s) return;
+    s.blocks.splice(blockIndex, 1);
+    renderSections();
+  }
+
+  function clearAll() {
+    if (!confirm('Точно очистить все разделы и текст?')) return;
+    sections = [];
+    sectionCounter = 0;
+    figureCounter = 1;
+    codeCounter = 1;
+    tableCounter = 1;
+    currentLevel = 0;
+    renderSections();
+    outputTex.value = '';
+    updateLevelIndicator();
+  }
+
+  function loadExample() {
+    if (!confirm('Загрузить пример? Все текущие разделы будут удалены.')) return;
+    
+    // Очищаем текущие данные
+    sections = [];
+    sectionCounter = 0;
+    figureCounter = 1;
+    codeCounter = 1;
+    tableCounter = 1;
+    currentLevel = 0;
+
+    // Заполняем титульный лист
+    document.getElementById('kafedra').value = 'Информационные технологии и системы';
+    document.getElementById('tema').value = 'ОРГАНИЗАЦИЯ IP-ТЕЛЕФОНИИ НА ОСНОВЕ ОТЕЧЕСТВЕННЫХ РЕШЕНИЙ';
+    document.getElementById('vid_raboty').value = 'Расчётно-графическая работа №1';
+    document.getElementById('disciplina').value = 'Проектирование графических интерфейсов информационных систем';
+    document.getElementById('shapka_stroka').value = 'ЛР 09.03.02. 17.02.БО231ИСТ';
+    document.getElementById('student_label').value = 'Студент';
+    document.getElementById('rukovoditel_label').value = 'Проверил\\доцент к.и.н.';
+    document.getElementById('student').value = 'Т.\,П.~Чигирёв';
+    document.getElementById('rukovoditel').value = 'О.\,В.~Рыбкина';
+    document.getElementById('rukovoditel_dolzhnost').value = '';
+    document.getElementById('city').value = 'Хабаровск';
+    document.getElementById('god').value = '2025';
+
+    // Создаем разделы с содержимым
+    createExampleSections();
+    renderSections();
+    updateLevelIndicator();
+  }
+
+  function createExampleSections() {
+    // Раздел "Введение"
+    const introId = ++sectionCounter;
+    sections.push({
+      id: introId,
+      title: 'Введение',
+      level: 0,
+      blocks: [
+        {
+          type: 'text',
+          content: 'Расчётно графическая работа это серьёзный шаг к достижению дерьма. Да, я пишу текст вот просто так на рандом и мне от этого весело, потому что я проверяю свой сайт для написания отчётов. Скопирую этот текст и вставлю ещё раз.\\\\Расчётно графическая работа это серьёзный шаг к достижению дерьма. Да, я пишу текст вот просто так на рандом и мне от этого весело, потому что я проверяю свой сайт для написания отчётов. На этом закончим!'
+        },
+        {
+          type: 'pagebreak'
+        }
+      ]
+    });
+
+    // Раздел "Ход работы"
+    const workId = ++sectionCounter;
+    sections.push({
+      id: workId,
+      title: '1. Ход работы',
+      level: 0,
+      blocks: [
+        {
+          type: 'text',
+          content: 'Чтобы выполнить работу, надо сделать следующие задания:'
+        },
+        {
+          type: 'list',
+          ordered: true,
+          items: [
+            { label: '', text: 'Пописять в куст' },
+            { label: '', text: 'Насрать в унитаз' },
+            { label: '', text: 'Попукать' },
+            { label: '', text: 'Разъебаться жёстко' }
+          ]
+        },
+        {
+          type: 'text',
+          content: 'После определения данных пунктов работы начнём их выполнение.'
+        }
+      ]
+    });
+
+    // Подраздел "Пиписьки"
+    const pipiskiId = ++sectionCounter;
+    sections.push({
+      id: pipiskiId,
+      title: '1.1 Пиписьки',
+      level: 1,
+      blocks: [
+        {
+          type: 'text',
+          content: 'Напишем первый кусок кода для написания какашечной работы. Этот кусок продемонстрирован в блоке код 1.'
+        },
+        {
+          type: 'code',
+          caption: 'Какашечный код',
+          code: `using Samboo_proj.Utilities;
+using Samboo_proj.ViewModel;
+using System;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Interop;
+
+namespace Samboo_proj.WindowsXaml
+{
+    /// <summary>
+    /// Логика взаимодействия для MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        private readonly MainSamplerWindowViewModel _viewModel; //viewModel семплера
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            _viewModel = new MainSamplerWindowViewModel();
+            DataContext = _viewModel;
+            ((MainSamplerWindowViewModel)DataContext).InitializeSlidePreviews();
+
+            this.Closing += SamplerMainWindow_Closing; // <-- здесь обработчик, не будем вписывать в xaml
+        }
+
+        // ... остальной код ...
+    }
+}`
+        },
+        {
+          type: 'text',
+          content: 'После написания кода, посмотрим на план в таблице 1.'
+        },
+        {
+          type: 'table',
+          caption: 'План',
+          cols: '4',
+          data: `Пидорасы;Мнение;Зачем;Вывод\nМаксим Глушко;Хочет писю;Чтобы стать успешнее;Это провальный вариант\nЯ;Не пидор;Латентный;Врёт\nУшанов Иван;Не пидор;Красиво;Не врёт`
+        }
+      ]
+    });
+
+    // Подраздел "Заключительный этап"
+    const finalId = ++sectionCounter;
+    sections.push({
+      id: finalId,
+      title: '1.2 Заключительный этап',
+      level: 1,
+      blocks: [
+        {
+          type: 'text',
+          content: 'Пропишем второй кусок кода для красивого отображения в виде xaml в коде 2.'
+        },
+        {
+          type: 'code',
+          caption: 'XAML пример',
+          code: `<Window x:Class="Samboo_proj.WindowsXaml.MainWindow"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Samboo_proj"
+        mc:Ignorable="d" AllowsTransparency="True"
+        Title="Show Today Sampler 3" Height="500" Width="590"
+        MinWidth="590" MinHeight="290"
+        MaxWidth="830" MaxHeight="1080"
+        WindowStyle="None" ResizeMode="CanResize" Background="Transparent" 
+        WindowStartupLocation="CenterScreen" FontFamily="Bahnschrift SemiLight">
+
+    <!-- Начало разметки -->
+
+    <Grid Margin="5">
+        <!-- ... остальной XAML код ... -->
+    </Grid>
+</Window>`
+        }
+      ]
+    });
+
+    // Раздел "Заключение"
+    const conclusionId = ++sectionCounter;
+    sections.push({
+      id: conclusionId,
+      title: 'Заключение',
+      level: 0,
+      blocks: [
+        {
+          type: 'text',
+          content: 'Я пидорас жёсткий жйсткий вот и мое заключение в общем, ничего не навязываю идите в сраку.'
+        }
+      ]
+    });
+  }
+
+  function renderSections() {
+    sectionsContainer.innerHTML = '';
+    if (sections.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-hint';
+      empty.textContent = 'Пока разделов нет. Добавь хотя бы один, иначе получится просто титульник отличника-ботаника.';
+      sectionsContainer.appendChild(empty);
+      return;
+    }
+
+    sections.forEach(section => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'section-block level-' + section.level;
+
+      const header = document.createElement('div');
+      header.className = 'section-header';
+
+      const left = document.createElement('div');
+      const label = document.createElement('label');
+      label.textContent = section.level === 0 ? 'Заголовок раздела' :
+                          section.level === 1 ? 'Подзаголовок (уровень 1)' :
+                          'Подзаголовок (уровень 2)';
+      label.style.marginBottom = '2px';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = section.title;
+      input.oninput = (e) => updateSectionTitle(section.id, e.target.value);
+
+      left.appendChild(label);
+      left.appendChild(input);
+
+      const right = document.createElement('div');
+      right.innerHTML = `<span>id ${section.id}, уровень ${section.level}</span>`;
+
+      header.appendChild(left);
+      header.appendChild(right);
+      wrapper.appendChild(header);
+
+      const actions = document.createElement('div');
+      actions.className = 'section-actions';
+
+      const btnText = document.createElement('button');
+      btnText.type = 'button';
+      btnText.className = 'secondary';
+      btnText.textContent = '+ Текст';
+      btnText.onclick = () => addTextBlock(section.id);
+
+      const btnFig = document.createElement('button');
+      btnFig.type = 'button';
+      btnFig.className = 'secondary';
+      btnFig.textContent = '+ Рисунок';
+      btnFig.onclick = () => addFigureBlock(section.id);
+
+      const btnCode = document.createElement('button');
+      btnCode.type = 'button';
+      btnCode.className = 'secondary';
+      btnCode.textContent = '+ Код';
+      btnCode.onclick = () => addCodeBlock(section.id);
+
+      const btnTable = document.createElement('button');
+      btnTable.type = 'button';
+      btnTable.className = 'secondary';
+      btnTable.textContent = '+ Таблица';
+      btnTable.onclick = () => addTableBlock(section.id);
+
+      const btnList = document.createElement('button');
+      btnList.type = 'button';
+      btnList.className = 'secondary';
+      btnList.textContent = '+ Список';
+      btnList.onclick = () => addListBlock(section.id);
+
+      const btnBreak = document.createElement('button');
+      btnBreak.type = 'button';
+      btnBreak.className = 'secondary';
+      btnBreak.textContent = '+ Разрыв страницы';
+      btnBreak.onclick = () => addPageBreak(section.id);
+
+      const btnDel = document.createElement('button');
+      btnDel.type = 'button';
+      btnDel.className = 'danger';
+      btnDel.textContent = 'Удалить раздел';
+      btnDel.onclick = () => removeSection(section.id);
+
+      actions.appendChild(btnText);
+      actions.appendChild(btnFig);
+      actions.appendChild(btnCode);
+      actions.appendChild(btnTable);
+      actions.appendChild(btnList);
+      actions.appendChild(btnBreak);
+      actions.appendChild(btnDel);
+
+      wrapper.appendChild(actions);
+
+      // Блоки заполнения теперь идут ПОСЛЕ кнопок (внизу)
+      section.blocks.forEach((block, idx) => {
+        const bDiv = document.createElement('div');
+        bDiv.className = 'block';
+
+        const titleRow = document.createElement('div');
+        titleRow.className = 'block-title';
+
+        let labelText = '';
+        if (block.type === 'text') labelText = 'Текстовый блок';
+        else if (block.type === 'figure') labelText = 'Рисунок';
+        else if (block.type === 'code') labelText = 'Код';
+        else if (block.type === 'table') labelText = 'Таблица';
+        else if (block.type === 'list') labelText = 'Список';
+        else if (block.type === 'pagebreak') labelText = 'Разрыв страницы (\\clearpage)';
+
+        titleRow.innerHTML = `<span>${labelText}</span>`;
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'secondary';
+        delBtn.style.padding = '2px 8px';
+        delBtn.style.fontSize = '11px';
+        delBtn.textContent = '×';
+        delBtn.title = 'Удалить блок';
+        delBtn.onclick = () => removeBlock(section.id, idx);
+        titleRow.appendChild(delBtn);
+
+        bDiv.appendChild(titleRow);
+
+        if (block.type === 'text') {
+          const ta = document.createElement('textarea');
+          ta.placeholder = 'Текст раздела...';
+          ta.value = block.content || '';
+          ta.oninput = (e) => updateTextBlock(section.id, idx, e.target.value);
+          bDiv.appendChild(ta);
+        } else if (block.type === 'figure') {
+          const fRow = document.createElement('div');
+          fRow.className = 'row';
+
+          const col1 = document.createElement('div');
+          const l1 = document.createElement('label');
+          l1.textContent = 'Имя файла (в папке images/)';
+          const in1 = document.createElement('input');
+          in1.type = 'text';
+          in1.value = block.filename || '';
+          in1.oninput = (e) => updateFigureBlock(section.id, idx, 'filename', e.target.value);
+          col1.appendChild(l1);
+          col1.appendChild(in1);
+
+          const col2 = document.createElement('div');
+          const l2 = document.createElement('label');
+          l2.textContent = 'Подпись к рисунку (только текст после «- »)';
+          const in2 = document.createElement('input');
+          in2.type = 'text';
+          in2.value = block.caption || '';
+          in2.oninput = (e) => updateFigureBlock(section.id, idx, 'caption', e.target.value);
+          col2.appendChild(l2);
+          col2.appendChild(in2);
+
+          fRow.appendChild(col1);
+          fRow.appendChild(col2);
+          bDiv.appendChild(fRow);
+
+          const hint = document.createElement('p');
+          hint.className = 'hint';
+          hint.style.marginTop = '4px';
+          hint.textContent = 'Файл сам положи в папку images рядом с .tex, например images/' + (block.filename || 'risX.png') + '.';
+          bDiv.appendChild(hint);
+        } else if (block.type === 'code') {
+          const row = document.createElement('div');
+          row.className = 'field';
+          const lcap = document.createElement('label');
+          lcap.textContent = 'Подпись к коду (после «Код n - ...»)';
+          const inCap = document.createElement('input');
+          inCap.type = 'text';
+          inCap.value = block.caption || '';
+          inCap.oninput = (e) => updateCodeBlock(section.id, idx, 'caption', e.target.value);
+          row.appendChild(lcap);
+          row.appendChild(inCap);
+          bDiv.appendChild(row);
+
+          const ta = document.createElement('textarea');
+          ta.placeholder = 'Сюда кидаешь код (как есть, LaTeX его съест через listings)...';
+          ta.value = block.code || '';
+          ta.oninput = (e) => updateCodeBlock(section.id, idx, 'code', e.target.value);
+          bDiv.appendChild(ta);
+        } else if (block.type === 'table') {
+          const row1 = document.createElement('div');
+          row1.className = 'row';
+
+          const c1 = document.createElement('div');
+          const lcap = document.createElement('label');
+          lcap.textContent = 'Подпись к таблице (после «Таблица n - ...»)';
+          const inCap = document.createElement('input');
+          inCap.type = 'text';
+          inCap.value = block.caption || '';
+          inCap.oninput = (e) => updateTableBlock(section.id, idx, 'caption', e.target.value);
+          c1.appendChild(lcap);
+          c1.appendChild(inCap);
+
+          const c2 = document.createElement('div');
+          const lcols = document.createElement('label');
+          lcols.textContent = 'Количество столбцов (0 = авто по первой строке)';
+          const inCols = document.createElement('input');
+          inCols.type = 'number';
+          inCols.min = '0';
+          inCols.value = block.cols || '';
+          inCols.oninput = (e) => updateTableBlock(section.id, idx, 'cols', e.target.value);
+          c2.appendChild(lcols);
+          c2.appendChild(inCols);
+
+          row1.appendChild(c1);
+          row1.appendChild(c2);
+          bDiv.appendChild(row1);
+
+          const ta = document.createElement('textarea');
+          ta.placeholder = 'Данные таблицы.\nКаждая строка — отдельная строка таблицы.\nЯчейки разделяй точкой с запятой (;)\nПример:\nОбъект;Структура;Состояния\nРейс;Номер, маршрут;Задержан / отменён';
+          ta.value = block.data || '';
+          ta.oninput = (e) => updateTableBlock(section.id, idx, 'data', e.target.value);
+          bDiv.appendChild(ta);
+        } else if (block.type === 'list') {
+          const row = document.createElement('div');
+          row.className = 'checkbox-line';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = !!block.ordered;
+          cb.onchange = (e) => toggleListOrdered(section.id, idx, e.target.checked);
+          const lbl = document.createElement('span');
+          lbl.textContent = 'Нумерованный список (если выключено — маркированный)';
+          row.appendChild(cb);
+          row.appendChild(lbl);
+          bDiv.appendChild(row);
+
+          const itemsWrap = document.createElement('div');
+          itemsWrap.className = 'field';
+
+          block.items.forEach((item, i) => {
+            const line = document.createElement('div');
+            line.className = 'row';
+            const colLabel = document.createElement('div');
+            const colText = document.createElement('div');
+
+            const inLabel = document.createElement('input');
+            inLabel.type = 'text';
+            inLabel.placeholder = `Объект ${i + 1} (например: Мотоцикл)`;
+            inLabel.value = item.label || '';
+            inLabel.oninput = (e) => updateListItem(section.id, idx, i, 'label', e.target.value);
+
+            const inText = document.createElement('input');
+            inText.type = 'text';
+            inText.placeholder = `Текст ${i + 1} (например: это круто)`;
+            inText.value = item.text || '';
+            inText.oninput = (e) => updateListItem(section.id, idx, i, 'text', e.target.value);
+
+            colLabel.appendChild(inLabel);
+            colText.appendChild(inText);
+            line.appendChild(colLabel);
+            line.appendChild(colText);
+            itemsWrap.appendChild(line);
+          });
+
+          const addItemBtn = document.createElement('button');
+          addItemBtn.type = 'button';
+          addItemBtn.className = 'secondary';
+          addItemBtn.style.marginTop = '4px';
+          addItemBtn.textContent = '+ Пункт';
+          addItemBtn.onclick = () => addListItem(section.id, idx);
+          itemsWrap.appendChild(addItemBtn);
+
+          bDiv.appendChild(itemsWrap);
+        } else if (block.type === 'pagebreak') {
+          const hint = document.createElement('p');
+          hint.className = 'hint';
+          hint.style.marginTop = '2px';
+          hint.textContent = 'В .tex это будет \\clearpage — разрыв страницы.';
+          bDiv.appendChild(hint);
+        }
+
+        wrapper.appendChild(bDiv);
+      });
+
+      sectionsContainer.appendChild(wrapper);
+    });
+  }
+
+  // ===== Генерация LaTeX =====
+
+  function latexEscape(text) {
+    if (!text) return '';
+    return text
+      .replace(/%/g, '\\%')
+      .replace(/_/g, '\\_')
+      .replace(/\$/g, '\\$')
+      .replace(/#/g, '\\#')
+      .replace(/&/g, '\\&');
+  }
+
+  function buildPreamble() {
+    return String.raw`\documentclass[14pt]{extarticle}
+
+% ===== Русский язык и шрифты (pdfLaTeX) =====
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\addto\captionsrussian{\renewcommand{\contentsname}{Оглавление}}
+\usepackage{mathptmx} % шрифт в стиле Times
+\usepackage{caption}
+\usepackage{xcolor}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[R]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+}
+
+\usepackage{float}
+
+\captionsetup[figure]{
+    name={Рисунок},
+    labelsep={space},
+    justification=centering,
+    singlelinecheck=false
+}
+
+% ===== Поля, интервалы, абзацы =====
+\usepackage{geometry}
+\geometry{
+  a4paper,
+  left=3cm,
+  right=1.5cm,
+  top=2cm,
+  bottom=2cm
+}
+
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{indentfirst}
+\setlength{\parindent}{1.25cm}
+
+% ===== Картинки =====
+\usepackage{graphicx}
+\graphicspath{{images/}} % папка для скринов (создай её в проекте)
+
+\usepackage{caption}
+
+% ===== Оглавление (точки и чуть меньший шрифт) =====
+\usepackage{tocloft}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsecfont}{\normalsize}
+\renewcommand{\cftsecpagefont}{\normalsize}
+\renewcommand{\cftsubsecfont}{\normalsize}
+\renewcommand{\cftsubsecpagefont}{\normalsize}
+\renewcommand{\cftsubsubsecfont}{\normalsize}
+\renewcommand{\cftsubsubsecpagefont}{\normalsize}
+\renewcommand{\cfttoctitlefont}{\hfill\large\bfseries}
+\renewcommand{\cftaftertoctitle}{\hfill}
+\setlength{\cftbeforesecskip}{4pt}
+\setlength{\cftbeforesubsecskip}{2pt}
+\setlength{\cftbeforesubsubsecskip}{1pt}
+
+% ===== Код (листинги) =====
+\usepackage{listings}
+\DeclareCaptionLabelFormat{nolabel}{}
+\captionsetup[lstlisting]{labelformat=nolabel}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  captionpos=b,
+  tabsize=2,
+  columns=fullflexible
+}
+
+% ===== Настройка размеров заголовков =====
+\usepackage{titlesec}
+
+% Настройка размера раздела (section)
+\titleformat{\section}
+  {\normalfont\normalsize\bfseries}
+  {\thesection}{1em}{}
+
+\titleformat{\subsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsection}{1em}{}
+
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsection}{1em}{}
+
+% Настройка отступов вокруг заголовков
+\titlespacing*{\section}{0.8cm}{12pt}{1.5cm} % {красная строка}{сверху}{снизу (большой)}
+\titlespacing*{\subsection}{0.8cm}{12pt}{12pt} % {красная строка}{сверху}{снизу (средний)}
+\titlespacing*{\subsubsection}{0.8cm}{12pt}{6pt} % {красная строка}{сверху}{снизу (маленький)}
+
+% Уменьшение красной строки для обычного текста
+\setlength{\parindent}{0.8cm} % было 1.25cm, стало 0.8cm
+
+\begin{document}
+
+`;
+  }
+
+  function buildTitlePage() {
+    const h = {
+      kafedra: document.getElementById('kafedra').value || '',
+      tema: document.getElementById('tema').value || '',
+      vid_raboty: document.getElementById('vid_raboty').value || '',
+      disciplina: document.getElementById('disciplina').value || '',
+      shapka_stroka: document.getElementById('shapka_stroka').value || '',
+      studentLabel: document.getElementById('student_label').value || 'Студент',
+      rukLabel: document.getElementById('rukovoditel_label').value || 'Руководитель',
+      rukDolzh: document.getElementById('rukovoditel_dolzhnost').value || '',
+      student: document.getElementById('student').value || '',
+      rukovoditel: document.getElementById('rukovoditel').value || '',
+      city: document.getElementById('city').value || 'Хабаровск',
+      god: document.getElementById('god').value || '2025'
+    };
+
+    const rukFullLabel = h.rukDolzh
+      ? h.rukLabel + ' ' + h.rukDolzh
+      : h.rukLabel;
+
+    return String.raw`
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{center}
+Министерство транспорта Российской Федерации\\
+Федеральное агентство железнодорожного транспорта\\[0.2em]
+
+Федеральное государственное бюджетное образовательное учреждение\\
+высшего образования\\
+«Дальневосточный государственный университет путей сообщения»\\[0.2em]
+
+Кафедра «${latexEscape(h.kafedra)}»
+\vfill
+
+{\bfseries
+\large ${latexEscape(h.tema)}\\[0.3em]
+\large ${latexEscape(h.vid_raboty)}
+}\\[0.3em]
+
+\large дисциплина «${latexEscape(h.disciplina)}»\\
+\Large ${latexEscape(h.shapka_stroka)}
+\large
+\vfill
+
+\begin{center}
+\begin{minipage}{\textwidth}
+  \setlength{\tabcolsep}{0pt}
+  \begin{tabular}{@{}p{4cm}p{9cm}p{4cm}@{}}
+    ${latexEscape(h.studentLabel)}
+      & \centering\hrulefill
+      & \centering ${h.student} \\[0em]
+  \end{tabular}
+\end{minipage}
+\end{center}
+
+\vspace{-25pt}
+\small\textit{(подпись, дата)}
+\large
+
+\begin{center}
+\begin{minipage}{\textwidth}
+  \setlength{\tabcolsep}{0pt}
+  \begin{tabular}{@{}p{4cm}p{9cm}p{4cm}@{}}
+    ${latexEscape(rukFullLabel)}
+      & \centering\hrulefill
+      & \centering ${h.rukovoditel} \\[0em]
+  \end{tabular}
+\end{minipage}
+\end{center}
+
+\vspace{-20pt}
+\small\textit{(подпись, дата)}
+\normalsize
+
+\vfill
+\normalsize ${latexEscape(h.city)} ${latexEscape(String(h.god))}
+\end{center}
+\end{titlepage}
+
+\setcounter{page}{2}
+`;
+  }
+
+  function buildTOC() {
+    const toc = document.getElementById('toc').checked;
+    if (!toc) return '';
+    return String.raw`
+\tableofcontents
+\clearpage
+
+`;
+  }
+
+  function buildBlocks(blocks) {
+    let out = '';
+    blocks.forEach(block => {
+      if (block.type === 'text') {
+        out += '\n' + latexEscape(block.content) + '\n\n';
+      } else if (block.type === 'figure') {
+        const filename = block.filename || '';
+        const captionText = block.caption || '';
+        out += String.raw`
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{${latexEscape(filename)}}
+    \caption{- ${latexEscape(captionText)}}
+\end{figure}
+
+`;
+      } else if (block.type === 'code') {
+        const captionText = block.caption || '';
+        const currentCodeIndex = codeCounter++;
+        const code = block.code || '';
+        out += String.raw`
+\begin{lstlisting}[caption={Код ${currentCodeIndex} - ${latexEscape(captionText)}}]
+` + code + String.raw`
+\end{lstlisting}
+
+`;
+      } else if (block.type === 'table') {
+        const captionText = block.caption || '';
+        const currentTableIndex = tableCounter++;
+        const colsRaw = block.cols || '';
+        let data = block.data || '';
+        let rows = data.split('\n').map(r => r.trim()).filter(r => r.length > 0);
+        let colCount = 0;
+
+        if (rows.length > 0) {
+          if (colsRaw && !isNaN(parseInt(colsRaw))) {
+            colCount = parseInt(colsRaw);
+          } else {
+            colCount = Math.max(...rows.map(r => r.split(';').length));
+          }
+        }
+
+        if (colCount <= 0) colCount = 1;
+
+        let colSpec = '|';
+        for (let i = 0; i < colCount; i++) {
+          colSpec += 'c|';
+        }
+
+        out += String.raw`
+\begin{table}[H]
+\caption*{\hfill \textbf{Таблица ${currentTableIndex} - ${latexEscape(captionText)}}}
+\centering
+\begin{tabular}{${colSpec}}
+\hline
+`;
+
+        rows.forEach((row) => {
+          const cells = row.split(';').map(c => latexEscape(c.trim()));
+          const padded = [];
+          for (let i = 0; i < colCount; i++) {
+            padded.push(cells[i] || '');
+          }
+          out += padded.join(' & ') + String.raw` \\` + '\n';
+          out += '\\hline\n';
+        });
+
+        out += String.raw`\end{tabular}
+\end{table}
+
+`;
+      } else if (block.type === 'list') {
+        const ordered = !!block.ordered;
+        const items = block.items || [];
+        if (ordered) {
+          out += '\n\\begin{enumerate}\n';
+        } else {
+          out += '\n\\begin{itemize}\n';
+        }
+        items.forEach(it => {
+          const label = (it.label || '').trim();
+          const desc = (it.text || '').trim();
+          if (!label && !desc) return;
+
+          if (label && desc) {
+            out += '\\item ' + latexEscape(label) + String.raw`\\` + '\n' +
+                   latexEscape(desc) + '\n';
+          } else if (label) {
+            out += '\\item ' + latexEscape(label) + '\n';
+          } else {
+            out += '\\item ' + latexEscape(desc) + '\n';
+          }
+        });
+        out += ordered ? '\\end{enumerate}\n\n' : '\\end{itemize}\n\n';
+      } else if (block.type === 'pagebreak') {
+        out += '\n\\clearpage\n\n';
+      }
+    });
+    return out;
+  }
+
+  function buildBody() {
+    let out = '\n% ================== ОСНОВНАЯ ЧАСТЬ ==================\n\n';
+    sections.forEach(sec => {
+      const title = (sec.title || '').trim();
+      if (!title) return;
+
+      let cmd = 'section';
+      let tocKind = 'section';
+      if (sec.level === 1) {
+        cmd = 'subsection';
+        tocKind = 'subsection';
+      } else if (sec.level === 2) {
+        cmd = 'subsubsection';
+        tocKind = 'subsubsection';
+      }
+
+      out += `\\${cmd}*{${latexEscape(title)}}\n`;
+      out += `\\addcontentsline{toc}{${tocKind}}{${latexEscape(title)}}\n\n`;
+      out += buildBlocks(sec.blocks || []);
+    });
+    return out;
+  }
+
+  function buildFullTex() {
+    let tex = '';
+    tex += buildPreamble();
+    tex += buildTitlePage();
+    tex += buildTOC();
+    // сброс счётчиков перед основным телом
+    figureCounter = 1;
+    codeCounter = 1;
+    tableCounter = 1;
+    tex += buildBody();
+    tex += '\n\\end{document}\n';
+    return tex;
+  }
+
+  function generateTex() {
+    const tex = buildFullTex();
+    outputTex.value = tex;
+  }
+
+  function downloadTex() {
+    const tex = outputTex.value || buildFullTex();
+    const blob = new Blob([tex], {type: 'text/x-tex;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'report.tex';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ===== Инициализация =====
+  document.getElementById('add-section-btn').addEventListener('click', () => createSection());
+  document.getElementById('add-section-lower-btn').addEventListener('click', addSectionLower);
+  document.getElementById('level-up-btn').addEventListener('click', levelUp);
+  document.getElementById('example-btn').addEventListener('click', loadExample);
+  document.getElementById('clear-all-btn').addEventListener('click', clearAll);
+  document.getElementById('generate-btn').addEventListener('click', generateTex);
+  document.getElementById('download-btn').addEventListener('click', downloadTex);
+
+  // старт: один раздел по умолчанию
+  createSection(0);
+  updateLevelIndicator();
+</script>
+
+</body></html>
