@@ -290,14 +290,12 @@ function normalizeCodeForLatex(code: string) {
     .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "");
 }
 
-function buildListingsLiterateMap() {
-  const supportedChars = [
-    ..."АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ".split(""),
-    ..."абвгдеёжзийклмнопрстуфхцчшщъыьэюя".split(""),
-    ..."«»№–—…“”„’".split("")
-  ];
-
-  return supportedChars.map((char) => `  {${char}}{{\\selectfont ${char}}}1`).join("\n");
+function latexGraphicPath(filename: string) {
+  return filename
+    .replace(/\r\n?/g, "")
+    .replace(/\\/g, "/")
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "")
+    .trim();
 }
 
 function buildPreamble() {
@@ -370,24 +368,13 @@ function buildPreamble() {
 \setlength{\cftbeforesubsubsecskip}{1pt}
 
 % ===== Код =====
-\usepackage{upquote}
-\usepackage{listings}
-\usepackage{listingsutf8}
-\DeclareCaptionLabelFormat{nolabel}{}
-\captionsetup[lstlisting]{labelformat=nolabel}
-\lstset{
-  basicstyle=\ttfamily\footnotesize,
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{CodeBlock}{Verbatim}{
   breaklines=true,
-  captionpos=b,
-  tabsize=2,
-  columns=fullflexible,
-  keepspaces=true,
-  showstringspaces=false,
-  upquote=true,
-  extendedchars=true,
-  inputencoding=utf8,
-  literate=
-${buildListingsLiterateMap()}
+  breakanywhere=true,
+  fontsize=\footnotesize,
+  baselinestretch=1,
+  formatcom=\color{black}
 }
 
 % ===== Настройка размеров заголовков =====
@@ -510,10 +497,11 @@ function buildBlocks(
     }
 
     if (block.type === "figure") {
+      const graphicPath = latexGraphicPath(block.filename);
       out += String.raw`
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{${latexEscape(block.filename)}}
+    \includegraphics[width=0.7\textwidth]{\detokenize{${graphicPath}}}
     \caption{- ${latexEscape(block.caption)}}
 \end{figure}
 
@@ -525,9 +513,11 @@ function buildBlocks(
       const currentCodeIndex = counters.code++;
       const normalizedCode = normalizeCodeForLatex(block.code);
       out += String.raw`
-\begin{lstlisting}[caption={Код ${currentCodeIndex} - ${latexEscape(block.caption)}}]
+\noindent\textbf{Код ${currentCodeIndex} - ${latexEscape(block.caption)}}\par
+\smallskip
+\begin{CodeBlock}
 ` + normalizedCode + String.raw`
-\end{lstlisting}
+\end{CodeBlock}
 
 `;
       return;
