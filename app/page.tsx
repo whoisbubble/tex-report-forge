@@ -515,7 +515,7 @@ export default function Home() {
   function downloadCapabilitiesJson() {
     const payload = {
       app: "MakeTexChigga",
-      version: 1,
+      version: 2,
       generatedAt: new Date().toISOString(),
       purpose: "Редактор отчетов с генерацией LaTeX и локальной сборкой PDF.",
       formats: {
@@ -527,10 +527,15 @@ export default function Home() {
         titlePage: true,
         headingNumbering: "automatic with optional disable per section",
         sectionInsertion: "after selected section",
+        sectionSelection: true,
+        sectionCollapse: true,
+        sectionCollapseAll: true,
         sectionDuplication: true,
         blockDuplication: true,
+        globalSearch: "search across headings and all block content",
         localAutosave: true,
         projectImportExport: true,
+        graphPreview: "inline SVG preview in editor before TEX/PDF generation",
         overleafShortcut: true,
         localPdfCompilation: "requires pdflatex / MiKTeX / TeX Live"
       },
@@ -558,7 +563,8 @@ export default function Home() {
           type: "graph",
           purpose: "График через TikZ/PGFPlots",
           fields: ["caption", "title", "xLabel", "yLabel", "mode", "startAtZero", "series"],
-          seriesFields: ["label", "color", "points"]
+          seriesFields: ["label", "color", "points"],
+          preview: "inline SVG preview with axes and legend"
         },
         {
           type: "list",
