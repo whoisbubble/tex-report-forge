@@ -12,6 +12,7 @@ import {
   normalizeDraft,
   type CodeBlock,
   type FigureBlock,
+  type GraphBlock,
   type ListBlock,
   type ReportBlock,
   type ReportDraft,
@@ -30,6 +31,7 @@ const blockLabels: Record<ReportBlock["type"], string> = {
   figure: "Рисунок",
   code: "Код",
   table: "Таблица",
+  graph: "График",
   list: "Список",
   pagebreak: "Разрыв страницы"
 };
@@ -66,6 +68,7 @@ export default function Home() {
   const [generatedSnapshot, setGeneratedSnapshot] = useState("");
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
   const [projectStatus, setProjectStatus] = useState<"idle" | "saved" | "loaded" | "error">("idle");
+  const [pdfStatus, setPdfStatus] = useState<"idle" | "building" | "done" | "error">("idle");
   const [loaded, setLoaded] = useState(false);
   const projectInputRef = useRef<HTMLInputElement>(null);
 
@@ -107,6 +110,13 @@ export default function Home() {
     const timer = window.setTimeout(() => setProjectStatus("idle"), 2200);
     return () => window.clearTimeout(timer);
   }, [projectStatus]);
+
+  useEffect(() => {
+    if (pdfStatus !== "done" && pdfStatus !== "error") return;
+
+    const timer = window.setTimeout(() => setPdfStatus("idle"), 2200);
+    return () => window.clearTimeout(timer);
+  }, [pdfStatus]);
 
   function updateMeta(key: keyof ReportMeta, value: string | boolean) {
     setDraft((previous) => ({
@@ -294,6 +304,46 @@ export default function Home() {
     URL.revokeObjectURL(url);
   }
 
+  async function buildPdf() {
+    setPdfStatus("building");
+
+    try {
+      const response = await fetch("/api/compile-pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          tex
+        })
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string; details?: string } | null;
+        throw new Error(payload?.details || payload?.error || "Компиляция PDF не удалась");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "report.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setPdfStatus("done");
+    } catch (error) {
+      setPdfStatus("error");
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Не получилось собрать PDF. Установите pdflatex, например MiKTeX или TeX Live.";
+      window.alert(message);
+    }
+  }
+
   function downloadDraftProject() {
     const payload = {
       app: projectFileApp,
@@ -394,6 +444,15 @@ export default function Home() {
           <a className="button ghost" href="https://www.overleaf.com/project" rel="noreferrer" target="_blank">
             Открыть Overleaf
           </a>
+          <button className="button primary" type="button" onClick={buildPdf}>
+            {pdfStatus === "building"
+              ? "Собираю PDF..."
+              : pdfStatus === "done"
+                ? "PDF готов"
+                : pdfStatus === "error"
+                  ? "Ошибка PDF"
+                  : "Скачать PDF"}
+          </button>
           <button className="button primary alt" type="button" onClick={downloadTex}>
             Скачать .tex
           </button>
@@ -559,7 +618,7 @@ export default function Home() {
                 </div>
 
                 <div className="block-toolbar">
-                  {(["text", "figure", "code", "table", "list", "pagebreak"] as ReportBlock["type"][]).map(
+                  {(["text", "figure", "code", "table", "graph", "list", "pagebreak"] as ReportBlock["type"][]).map(
                     (type) => (
                       <button className="chip-button" key={type} type="button" onClick={() => addBlock(section.id, type)}>
                         + {blockLabels[type]}
@@ -821,6 +880,113 @@ function BlockEditor({
               }
             />
           </label>
+        </>
+      )}
+
+      {block.type === "graph" && (
+        <>
+          <div className="block-grid">
+            <label className="field">
+              <span>Подпись к графику</span>
+              <input
+                type="text"
+                value={(block as GraphBlock).caption}
+                onChange={(event) =>
+                  onUpdate((current) =>
+                    current.type === "graph" ? { ...current, caption: event.target.value } : current
+                  )
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Заголовок внутри графика</span>
+              <input
+                type="text"
+                value={(block as GraphBlock).title}
+                onChange={(event) =>
+                  onUpdate((current) =>
+                    current.type === "graph" ? { ...current, title: event.target.value } : current
+                  )
+                }
+              />
+            </label>
+          </div>
+          <div className="block-grid">
+            <label className="field">
+              <span>Подпись оси X</span>
+              <input
+                type="text"
+                value={(block as GraphBlock).xLabel}
+                onChange={(event) =>
+                  onUpdate((current) =>
+                    current.type === "graph" ? { ...current, xLabel: event.target.value } : current
+                  )
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Подпись оси Y</span>
+              <input
+                type="text"
+                value={(block as GraphBlock).yLabel}
+                onChange={(event) =>
+                  onUpdate((current) =>
+                    current.type === "graph" ? { ...current, yLabel: event.target.value } : current
+                  )
+                }
+              />
+            </label>
+          </div>
+          <div className="block-grid">
+            <label className="field">
+              <span>Тип графика</span>
+              <select
+                value={(block as GraphBlock).mode}
+                onChange={(event) =>
+                  onUpdate((current) =>
+                    current.type === "graph"
+                      ? { ...current, mode: event.target.value as GraphBlock["mode"] }
+                      : current
+                  )
+                }
+              >
+                <option value="line">Линейный</option>
+                <option value="bar">Столбчатый</option>
+              </select>
+            </label>
+            <label className="field">
+              <span>Цвет</span>
+              <select
+                value={(block as GraphBlock).color}
+                onChange={(event) =>
+                  onUpdate((current) =>
+                    current.type === "graph" ? { ...current, color: event.target.value } : current
+                  )
+                }
+              >
+                <option value="teal">Бирюзовый</option>
+                <option value="blue">Синий</option>
+                <option value="red">Красный</option>
+                <option value="orange">Оранжевый</option>
+                <option value="green!60!black">Зелёный</option>
+                <option value="violet">Фиолетовый</option>
+              </select>
+            </label>
+          </div>
+          <label className="field">
+            <span>Точки графика</span>
+            <textarea
+              className="large-textarea"
+              placeholder={"Каждая строка — одна точка.\nФормат: X;Y\nЯнв;12\nФев;18\nМар;15"}
+              value={(block as GraphBlock).points}
+              onChange={(event) =>
+                onUpdate((current) => (current.type === "graph" ? { ...current, points: event.target.value } : current))
+              }
+            />
+          </label>
+          <p className="inline-note">
+            Можно использовать числа или подписи по оси X. Формат данных: одна строка — одна точка, `X;Y`.
+          </p>
         </>
       )}
 

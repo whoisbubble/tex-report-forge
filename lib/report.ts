@@ -28,6 +28,18 @@ export type TableBlock = {
   data: string;
 };
 
+export type GraphBlock = {
+  id: string;
+  type: "graph";
+  caption: string;
+  title: string;
+  xLabel: string;
+  yLabel: string;
+  mode: "line" | "bar";
+  color: string;
+  points: string;
+};
+
 export type ListBlock = {
   id: string;
   type: "list";
@@ -45,6 +57,7 @@ export type ReportBlock =
   | FigureBlock
   | CodeBlock
   | TableBlock
+  | GraphBlock
   | ListBlock
   | PageBreakBlock;
 
@@ -133,6 +146,20 @@ export function createBlock(type: ReportBlock["type"], figureIndex = 1): ReportB
 
   if (type === "table") {
     return { id: makeId("block"), type, caption: "", cols: "", data: "" };
+  }
+
+  if (type === "graph") {
+    return {
+      id: makeId("block"),
+      type,
+      caption: "",
+      title: "",
+      xLabel: "X",
+      yLabel: "Y",
+      mode: "line",
+      color: "teal",
+      points: "1;10\n2;15\n3;12"
+    };
   }
 
   if (type === "list") {
@@ -264,6 +291,17 @@ export function createExampleDraft(): ReportDraft {
             caption: "План проверки",
             cols: "3",
             data: "Этап;Действие;Результат\n1;Заполнение титульного листа;Данные сохранены\n2;Добавление разделов;Структура отчёта готова\n3;Генерация .tex;Файл можно компилировать"
+          },
+          {
+            id: makeId("block"),
+            type: "graph",
+            caption: "Скорость обработки запросов",
+            title: "Нагрузка по этапам",
+            xLabel: "Этап",
+            yLabel: "мс",
+            mode: "line",
+            color: "blue",
+            points: "1;120\n2;95\n3;140\n4;110"
           }
         ]
       },
@@ -306,6 +344,99 @@ function latexGraphicPath(filename: string) {
     .replace(/\\/g, "/")
     .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "")
     .trim();
+}
+
+function latexOptionEscape(text: string) {
+  if (!text) return "";
+
+  return text
+    .replace(/\\/g, "")
+    .replace(/[{}]/g, "")
+    .replace(/%/g, "")
+    .replace(/\r\n?/g, " ")
+    .trim();
+}
+
+function escapePgfplotsCoordinate(value: string) {
+  return value
+    .replace(/\\/g, "\\textbackslash{}")
+    .replace(/[{}]/g, "")
+    .replace(/%/g, "\\%")
+    .replace(/#/g, "\\#")
+    .replace(/&/g, "\\&")
+    .trim();
+}
+
+function parseGraphPoints(points: string) {
+  return points
+    .split("\n")
+    .map((row) => row.trim())
+    .filter(Boolean)
+    .map((row) => {
+      const [x = "", y = ""] = row.split(";");
+      return {
+        x: x.trim(),
+        y: y.trim()
+      };
+    })
+    .filter((point) => point.x && point.y);
+}
+
+function buildGraphBlock(block: GraphBlock) {
+  const points = parseGraphPoints(block.points);
+
+  if (points.length === 0) {
+    return "";
+  }
+
+  const isNumericX = points.every((point) => /^-?\d+(?:[.,]\d+)?$/.test(point.x));
+  const axisOptions = [
+    "width=0.92\\textwidth",
+    "height=0.42\\textwidth",
+    "grid=both",
+    "major grid style={draw=gray!35}",
+    "minor grid style={draw=gray!20}",
+    `xlabel={${latexEscape(block.xLabel)}}`,
+    `ylabel={${latexEscape(block.yLabel)}}`,
+    `title={${latexEscape(block.title)}}`
+  ];
+
+  let plotOptions = "thick, mark=*";
+
+  if (block.mode === "bar") {
+    plotOptions = `ybar, fill=${latexOptionEscape(block.color)}!55, draw=${latexOptionEscape(block.color)}`;
+    axisOptions.push("bar width=14pt");
+  } else {
+    plotOptions = `thick, mark=*, color=${latexOptionEscape(block.color)}`;
+  }
+
+  if (!isNumericX) {
+    axisOptions.push(`symbolic x coords={${points.map((point) => escapePgfplotsCoordinate(point.x)).join(",")}}`);
+    axisOptions.push("xtick=data");
+    axisOptions.push("x tick label style={rotate=20, anchor=east}");
+  }
+
+  const coordinates = points
+    .map((point) => {
+      const x = isNumericX ? point.x.replace(",", ".") : escapePgfplotsCoordinate(point.x);
+      const y = point.y.replace(",", ".");
+
+      return `(${x},${y})`;
+    })
+    .join(" ");
+
+  return String.raw`
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[${axisOptions.join(", ")}]
+        \addplot+[${plotOptions}] coordinates { ${coordinates} };
+      \end{axis}
+    \end{tikzpicture}
+    \caption{- ${latexEscape(block.caption)}}
+\end{figure}
+
+`;
 }
 
 function buildPreamble() {
@@ -357,6 +488,9 @@ function buildPreamble() {
 \setlength{\parindent}{1.25cm}
 
 % ===== Картинки =====
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 \usepackage{graphicx}
 \graphicspath{{images/}} % папка для скринов
 
@@ -573,6 +707,11 @@ function buildBlocks(
 \end{table}
 
 `;
+      return;
+    }
+
+    if (block.type === "graph") {
+      out += buildGraphBlock(block);
       return;
     }
 
