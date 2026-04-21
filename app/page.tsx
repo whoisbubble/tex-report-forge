@@ -1110,7 +1110,7 @@ function BlockEditor({
             {(block as GraphBlock).series.map((series, index) => (
               <div className="series-editor" key={series.id}>
                 <div className="series-head">
-                  <strong>Серия {index + 1}</strong>
+                  <strong>{series.label.trim() || `Серия ${index + 1}`}</strong>
                   <button className="mini-button danger-text" type="button" onClick={() => onRemoveGraphSeries(series.id)}>
                     Удалить серию
                   </button>
@@ -1119,6 +1119,7 @@ function BlockEditor({
                   <label className="field">
                     <span>Название серии</span>
                     <input
+                      placeholder={`Например: API ${index + 1}`}
                       type="text"
                       value={series.label}
                       onChange={(event) => onUpdateGraphSeries(series.id, { label: event.target.value })}

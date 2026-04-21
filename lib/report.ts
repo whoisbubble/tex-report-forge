@@ -454,7 +454,7 @@ function buildGraphBlock(block: GraphBlock) {
     axisOptions.push("x tick label style={rotate=20, anchor=east}");
   }
 
-  if (series.length > 1) {
+  if (series.some((item) => item.label.trim())) {
     axisOptions.push("legend cell align={left}");
     axisOptions.push("legend pos=north west");
   }
