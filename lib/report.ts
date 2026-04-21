@@ -198,6 +198,44 @@ export function createSection(level: SectionLevel, title = "Новый разд�
   };
 }
 
+export function cloneBlock(block: ReportBlock): ReportBlock {
+  if (block.type === "list") {
+    return {
+      ...block,
+      id: makeId("block"),
+      items: block.items.map((item) => ({
+        ...item,
+        id: makeId("item")
+      }))
+    };
+  }
+
+  if (block.type === "graph") {
+    return {
+      ...block,
+      id: makeId("block"),
+      series: block.series.map((series) => ({
+        ...series,
+        id: makeId("series")
+      }))
+    };
+  }
+
+  return {
+    ...block,
+    id: makeId("block")
+  };
+}
+
+export function cloneSection(section: ReportSection): ReportSection {
+  return {
+    ...section,
+    id: makeId("section"),
+    title: section.title ? `${section.title} (копия)` : "Новый раздел (копия)",
+    blocks: section.blocks.map((block) => cloneBlock(block))
+  };
+}
+
 export function createInitialDraft(): ReportDraft {
   return {
     meta: { ...defaultMeta },

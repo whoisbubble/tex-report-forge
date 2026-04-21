@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import {
   buildFullTex,
   buildSectionDisplayInfo,
+  cloneBlock,
+  cloneSection,
   createBlock,
   createExampleDraft,
   createInitialDraft,
@@ -209,6 +211,24 @@ export default function Home() {
     }));
   }
 
+  function duplicateSection(sectionId: string) {
+    setDraft((previous) => {
+      const index = previous.sections.findIndex((section) => section.id === sectionId);
+      if (index < 0) return previous;
+
+      const duplicated = cloneSection(previous.sections[index]);
+      const sections = [...previous.sections];
+      sections.splice(index + 1, 0, duplicated);
+
+      setSelectedSectionId(duplicated.id);
+
+      return {
+        ...previous,
+        sections
+      };
+    });
+  }
+
   function insertSectionAfter(sectionId: string, level: SectionLevel) {
     setSelectedSectionId(sectionId);
     addSection(level, sectionId);
@@ -256,6 +276,27 @@ export default function Home() {
           ? { ...section, blocks: section.blocks.filter((block) => block.id !== blockId) }
           : section
       )
+    }));
+  }
+
+  function duplicateBlock(sectionId: string, blockId: string) {
+    setDraft((previous) => ({
+      ...previous,
+      sections: previous.sections.map((section) => {
+        if (section.id !== sectionId) return section;
+
+        const index = section.blocks.findIndex((block) => block.id === blockId);
+        if (index < 0) return section;
+
+        const duplicated = cloneBlock(section.blocks[index]);
+        const blocks = [...section.blocks];
+        blocks.splice(index + 1, 0, duplicated);
+
+        return {
+          ...section,
+          blocks
+        };
+      })
     }));
   }
 
@@ -431,6 +472,89 @@ export default function Home() {
     }
   }
 
+  function downloadCapabilitiesJson() {
+    const payload = {
+      app: "MakeTexChigga",
+      version: 1,
+      generatedAt: new Date().toISOString(),
+      purpose: "Редактор отчетов с генерацией LaTeX и локальной сборкой PDF.",
+      formats: {
+        editable_project: "json",
+        latex_export: "tex",
+        pdf_export: "pdf"
+      },
+      features: {
+        titlePage: true,
+        headingNumbering: "automatic with optional disable per section",
+        sectionInsertion: "after selected section",
+        sectionDuplication: true,
+        blockDuplication: true,
+        localAutosave: true,
+        projectImportExport: true,
+        overleafShortcut: true,
+        localPdfCompilation: "requires pdflatex / MiKTeX / TeX Live"
+      },
+      blockTypes: [
+        {
+          type: "text",
+          purpose: "Обычный текст отчета"
+        },
+        {
+          type: "figure",
+          purpose: "Внешняя картинка из images/",
+          fields: ["filename", "caption"]
+        },
+        {
+          type: "code",
+          purpose: "Кодовый фрагмент с безопасным verbatim-выводом",
+          fields: ["caption", "code"]
+        },
+        {
+          type: "table",
+          purpose: "Таблица из строк и ячеек, разделенных ;",
+          fields: ["caption", "cols", "data"]
+        },
+        {
+          type: "graph",
+          purpose: "График через TikZ/PGFPlots",
+          fields: ["caption", "title", "xLabel", "yLabel", "mode", "startAtZero", "series"],
+          seriesFields: ["label", "color", "points"]
+        },
+        {
+          type: "list",
+          purpose: "Маркированный или нумерованный список",
+          fields: ["ordered", "items"]
+        },
+        {
+          type: "pagebreak",
+          purpose: "Разрыв страницы"
+        }
+      ],
+      neuralInstructions: {
+        summary:
+          "Если этот JSON отправляется в нейросеть, она должна понимать структуру приложения и помогать заполнять разделы, блоки, графики и титульный лист без нарушения схемы.",
+        recommendedWorkflow: [
+          "Сначала определить структуру разделов",
+          "Потом наполнить блоки текстом, кодом, таблицами и графиками",
+          "После этого сгенерировать TEX или PDF"
+        ]
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json;charset=utf-8"
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "make-tex-chigga-capabilities.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   function downloadDraftProject() {
     const payload = {
       app: projectFileApp,
@@ -513,6 +637,9 @@ export default function Home() {
           </button>
           <button className="button ghost" type="button" onClick={downloadDraftProject}>
             {projectStatus === "saved" ? "Проект сохранён" : "Сохранить проект"}
+          </button>
+          <button className="button ghost" type="button" onClick={downloadCapabilitiesJson}>
+            Скачать capabilities.json
           </button>
           <button className="button ghost" type="button" onClick={() => projectInputRef.current?.click()}>
             {projectStatus === "loaded"
@@ -731,6 +858,9 @@ export default function Home() {
                     >
                       + Ниже
                     </button>
+                    <button className="mini-button" type="button" onClick={() => duplicateSection(section.id)}>
+                      Дубль
+                    </button>
                     <button className="mini-button" type="button" onClick={() => moveSection(section.id, -1)}>
                       Вверх
                     </button>
@@ -767,6 +897,7 @@ export default function Home() {
                         onMoveUp={() => moveBlock(section.id, block.id, -1)}
                         onRemove={() => removeBlock(section.id, block.id)}
                         onAddGraphSeries={() => addGraphSeries(section.id, block.id)}
+                        onDuplicate={() => duplicateBlock(section.id, block.id)}
                         onRemoveGraphSeries={(seriesId) => removeGraphSeries(section.id, block.id, seriesId)}
                         onRemoveListItem={(itemId) => removeListItem(section.id, block.id, itemId)}
                         onUpdate={(updater) => updateBlock(section.id, block.id, updater)}
@@ -861,6 +992,7 @@ function BlockEditor({
   block,
   blockIndex,
   onAddListItem,
+  onDuplicate,
   onMoveDown,
   onMoveUp,
   onRemove,
@@ -874,6 +1006,7 @@ function BlockEditor({
   block: ReportBlock;
   blockIndex: number;
   onAddListItem: () => void;
+  onDuplicate: () => void;
   onMoveDown: () => void;
   onMoveUp: () => void;
   onRemove: () => void;
@@ -891,6 +1024,9 @@ function BlockEditor({
           <h3>{blockLabels[block.type]}</h3>
         </div>
         <div className="block-actions">
+          <button className="mini-button" type="button" onClick={onDuplicate}>
+            Дубль
+          </button>
           <button className="mini-button" type="button" onClick={onMoveUp}>
             Вверх
           </button>
