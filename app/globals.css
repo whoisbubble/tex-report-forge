@@ -414,6 +414,11 @@ textarea:focus {
   background: var(--surface-strong);
 }
 
+.jump.active {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
 .jump.level-1 {
   padding-left: 22px;
 }
@@ -448,6 +453,12 @@ textarea:focus {
 .section-panel {
   scroll-margin-top: 18px;
   overflow: clip;
+}
+
+.section-panel.selected {
+  box-shadow:
+    0 0 0 2px rgba(84, 223, 207, 0.45),
+    var(--shadow);
 }
 
 .section-panel.level-1 {
@@ -494,6 +505,14 @@ textarea:focus {
 
 .section-toggle {
   align-self: center;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #101411;
+}
+
+.graph-zero-toggle {
   min-height: 42px;
   padding: 9px 11px;
   border: 1px solid var(--line);
@@ -593,6 +612,27 @@ textarea:focus {
 
 .list-editor {
   display: grid;
+  gap: 12px;
+}
+
+.series-list {
+  display: grid;
+  gap: 12px;
+}
+
+.series-editor {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #0f1411;
+}
+
+.series-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 

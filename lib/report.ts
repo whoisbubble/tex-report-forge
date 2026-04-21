@@ -36,6 +36,13 @@ export type GraphBlock = {
   xLabel: string;
   yLabel: string;
   mode: "line" | "bar";
+  startAtZero: boolean;
+  series: GraphSeries[];
+};
+
+export type GraphSeries = {
+  id: string;
+  label: string;
   color: string;
   points: string;
 };
@@ -157,8 +164,15 @@ export function createBlock(type: ReportBlock["type"], figureIndex = 1): ReportB
       xLabel: "X",
       yLabel: "Y",
       mode: "line",
-      color: "teal",
-      points: "1;10\n2;15\n3;12"
+      startAtZero: true,
+      series: [
+        {
+          id: makeId("series"),
+          label: "Серия 1",
+          color: "teal",
+          points: "1;10\n2;15\n3;12"
+        }
+      ]
     };
   }
 
@@ -300,8 +314,21 @@ export function createExampleDraft(): ReportDraft {
             xLabel: "Этап",
             yLabel: "мс",
             mode: "line",
-            color: "blue",
-            points: "1;120\n2;95\n3;140\n4;110"
+            startAtZero: true,
+            series: [
+              {
+                id: makeId("series"),
+                label: "API",
+                color: "blue",
+                points: "1;120\n2;95\n3;140\n4;110"
+              },
+              {
+                id: makeId("series"),
+                label: "SQL",
+                color: "red",
+                points: "1;80\n2;85\n3;100\n4;90"
+              }
+            ]
           }
         ]
       },
@@ -383,13 +410,19 @@ function parseGraphPoints(points: string) {
 }
 
 function buildGraphBlock(block: GraphBlock) {
-  const points = parseGraphPoints(block.points);
+  const series = block.series
+    .map((item) => ({
+      ...item,
+      points: parseGraphPoints(item.points)
+    }))
+    .filter((item) => item.points.length > 0);
 
-  if (points.length === 0) {
+  if (series.length === 0) {
     return "";
   }
 
-  const isNumericX = points.every((point) => /^-?\d+(?:[.,]\d+)?$/.test(point.x));
+  const allPoints = series.flatMap((item) => item.points);
+  const isNumericX = allPoints.every((point) => /^-?\d+(?:[.,]\d+)?$/.test(point.x));
   const axisOptions = [
     "width=0.92\\textwidth",
     "height=0.42\\textwidth",
@@ -401,36 +434,59 @@ function buildGraphBlock(block: GraphBlock) {
     `title={${latexEscape(block.title)}}`
   ];
 
-  let plotOptions = "thick, mark=*";
+  if (block.startAtZero) {
+    axisOptions.push("ymin=0");
+    axisOptions.push("enlarge y limits={lower=0}");
+    if (isNumericX) {
+      axisOptions.push("xmin=0");
+    }
+  }
 
   if (block.mode === "bar") {
-    plotOptions = `ybar, fill=${latexOptionEscape(block.color)}!55, draw=${latexOptionEscape(block.color)}`;
     axisOptions.push("bar width=14pt");
-  } else {
-    plotOptions = `thick, mark=*, color=${latexOptionEscape(block.color)}`;
   }
 
   if (!isNumericX) {
-    axisOptions.push(`symbolic x coords={${points.map((point) => escapePgfplotsCoordinate(point.x)).join(",")}}`);
+    axisOptions.push(
+      `symbolic x coords={${Array.from(new Set(allPoints.map((point) => escapePgfplotsCoordinate(point.x)))).join(",")}}`
+    );
     axisOptions.push("xtick=data");
     axisOptions.push("x tick label style={rotate=20, anchor=east}");
   }
 
-  const coordinates = points
-    .map((point) => {
-      const x = isNumericX ? point.x.replace(",", ".") : escapePgfplotsCoordinate(point.x);
-      const y = point.y.replace(",", ".");
+  if (series.length > 1) {
+    axisOptions.push("legend cell align={left}");
+    axisOptions.push("legend pos=north west");
+  }
 
-      return `(${x},${y})`;
+  const plots = series
+    .map((item) => {
+      const coordinates = item.points
+        .map((point) => {
+          const x = isNumericX ? point.x.replace(",", ".") : escapePgfplotsCoordinate(point.x);
+          const y = point.y.replace(",", ".");
+
+          return `(${x},${y})`;
+        })
+        .join(" ");
+
+      const plotOptions =
+        block.mode === "bar"
+          ? `ybar, fill=${latexOptionEscape(item.color)}!55, draw=${latexOptionEscape(item.color)}`
+          : `thick, mark=*, color=${latexOptionEscape(item.color)}`;
+
+      const legend = item.label.trim() ? `\n        \\addlegendentry{${latexEscape(item.label)}}` : "";
+
+      return `        \\addplot+[${plotOptions}] coordinates { ${coordinates} };${legend}`;
     })
-    .join(" ");
+    .join("\n");
 
   return String.raw`
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}
       \begin{axis}[${axisOptions.join(", ")}]
-        \addplot+[${plotOptions}] coordinates { ${coordinates} };
+${plots}
       \end{axis}
     \end{tikzpicture}
     \caption{- ${latexEscape(block.caption)}}
@@ -785,8 +841,43 @@ export function normalizeDraft(draft: ReportDraft): ReportDraft {
     },
     sections: draft.sections.map((section) => ({
       ...section,
-      isNumbered: section.isNumbered ?? true
+      isNumbered: section.isNumbered ?? true,
+      blocks: section.blocks.map((block) => normalizeBlock(block))
     }))
+  };
+}
+
+function normalizeBlock(block: ReportBlock): ReportBlock {
+  if (block.type !== "graph") {
+    return block;
+  }
+
+  const legacyBlock = block as GraphBlock & {
+    color?: string;
+    points?: string;
+  };
+
+  const series =
+    legacyBlock.series && legacyBlock.series.length > 0
+      ? legacyBlock.series.map((item, index) => ({
+          id: item.id || makeId("series"),
+          label: item.label || `Серия ${index + 1}`,
+          color: item.color || "teal",
+          points: item.points || ""
+        }))
+      : [
+          {
+            id: makeId("series"),
+            label: "Серия 1",
+            color: legacyBlock.color || "teal",
+            points: legacyBlock.points || ""
+          }
+        ];
+
+  return {
+    ...legacyBlock,
+    startAtZero: legacyBlock.startAtZero ?? true,
+    series
   };
 }
 

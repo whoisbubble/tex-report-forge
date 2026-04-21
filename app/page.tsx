@@ -13,6 +13,7 @@ import {
   type CodeBlock,
   type FigureBlock,
   type GraphBlock,
+  type GraphSeries,
   type ListBlock,
   type ReportBlock,
   type ReportDraft,
@@ -70,6 +71,7 @@ export default function Home() {
   const [projectStatus, setProjectStatus] = useState<"idle" | "saved" | "loaded" | "error">("idle");
   const [pdfStatus, setPdfStatus] = useState<"idle" | "building" | "done" | "error">("idle");
   const [loaded, setLoaded] = useState(false);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const projectInputRef = useRef<HTMLInputElement>(null);
 
   const tex = useMemo(() => buildFullTex(draft), [draft]);
@@ -85,7 +87,9 @@ export default function Home() {
       const saved = window.localStorage.getItem(storageKey);
 
       if (saved) {
-        setDraft(normalizeDraft(JSON.parse(saved) as ReportDraft));
+        const normalizedDraft = normalizeDraft(JSON.parse(saved) as ReportDraft);
+        setDraft(normalizedDraft);
+        setSelectedSectionId(normalizedDraft.sections[0]?.id ?? null);
       }
     } finally {
       setLoaded(true);
@@ -118,6 +122,17 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, [pdfStatus]);
 
+  useEffect(() => {
+    if (draft.sections.length === 0) {
+      setSelectedSectionId(null);
+      return;
+    }
+
+    if (!selectedSectionId || !draft.sections.some((section) => section.id === selectedSectionId)) {
+      setSelectedSectionId(draft.sections[0]?.id ?? null);
+    }
+  }, [draft.sections, selectedSectionId]);
+
   function updateMeta(key: keyof ReportMeta, value: string | boolean) {
     setDraft((previous) => ({
       ...previous,
@@ -128,11 +143,31 @@ export default function Home() {
     }));
   }
 
-  function addSection(level = currentLevel) {
-    setDraft((previous) => ({
-      ...previous,
-      sections: [...previous.sections, createSection(level)]
-    }));
+  function addSection(level = currentLevel, afterSectionId = selectedSectionId) {
+    const newSection = createSection(level);
+
+    setDraft((previous) => {
+      const insertIndex = afterSectionId
+        ? previous.sections.findIndex((section) => section.id === afterSectionId)
+        : -1;
+
+      if (insertIndex < 0) {
+        return {
+          ...previous,
+          sections: [...previous.sections, newSection]
+        };
+      }
+
+      const sections = [...previous.sections];
+      sections.splice(insertIndex + 1, 0, newSection);
+
+      return {
+        ...previous,
+        sections
+      };
+    });
+
+    setSelectedSectionId(newSection.id);
   }
 
   function addLowerSection() {
@@ -172,6 +207,11 @@ export default function Home() {
       ...previous,
       sections: previous.sections.filter((section) => section.id !== sectionId)
     }));
+  }
+
+  function insertSectionAfter(sectionId: string, level: SectionLevel) {
+    setSelectedSectionId(sectionId);
+    addSection(level, sectionId);
   }
 
   function addBlock(sectionId: string, type: ReportBlock["type"]) {
@@ -274,6 +314,53 @@ export default function Home() {
       return {
         ...block,
         items: block.items.filter((item) => item.id !== itemId)
+      };
+    });
+  }
+
+  function updateGraphSeries(
+    sectionId: string,
+    blockId: string,
+    seriesId: string,
+    patch: Partial<Pick<GraphSeries, "label" | "color" | "points">>
+  ) {
+    updateBlock(sectionId, blockId, (block) => {
+      if (block.type !== "graph") return block;
+
+      return {
+        ...block,
+        series: block.series.map((series) => (series.id === seriesId ? { ...series, ...patch } : series))
+      };
+    });
+  }
+
+  function addGraphSeries(sectionId: string, blockId: string) {
+    updateBlock(sectionId, blockId, (block) => {
+      if (block.type !== "graph") return block;
+
+      return {
+        ...block,
+        series: [
+          ...block.series,
+          {
+            id: makeId("series"),
+            label: `Серия ${block.series.length + 1}`,
+            color: "teal",
+            points: "1;10\n2;15\n3;12"
+          }
+        ]
+      };
+    });
+  }
+
+  function removeGraphSeries(sectionId: string, blockId: string, seriesId: string) {
+    updateBlock(sectionId, blockId, (block) => {
+      if (block.type !== "graph") return block;
+      if (block.series.length <= 1) return block;
+
+      return {
+        ...block,
+        series: block.series.filter((series) => series.id !== seriesId)
       };
     });
   }
@@ -384,8 +471,10 @@ export default function Home() {
 
       if (!window.confirm("Загрузить проект из файла? Текущий черновик будет заменён.")) return;
 
-      setDraft(normalizeDraft(importedDraft));
+      const normalizedDraft = normalizeDraft(importedDraft);
+      setDraft(normalizedDraft);
       setCurrentLevel(0);
+      setSelectedSectionId(normalizedDraft.sections[0]?.id ?? null);
       setGeneratedSnapshot("");
       setProjectStatus("loaded");
     } catch {
@@ -396,14 +485,18 @@ export default function Home() {
 
   function loadExample() {
     if (!window.confirm("Загрузить пример? Текущий черновик будет заменён.")) return;
-    setDraft(createExampleDraft());
+    const exampleDraft = createExampleDraft();
+    setDraft(exampleDraft);
     setCurrentLevel(0);
+    setSelectedSectionId(exampleDraft.sections[0]?.id ?? null);
   }
 
   function clearDraft() {
     if (!window.confirm("Очистить весь черновик?")) return;
-    setDraft(createInitialDraft());
+    const initialDraft = createInitialDraft();
+    setDraft(initialDraft);
     setCurrentLevel(0);
+    setSelectedSectionId(initialDraft.sections[0]?.id ?? null);
   }
 
   return (
@@ -509,7 +602,10 @@ export default function Home() {
         <aside className="side-panel">
           <div className="side-panel-inner">
             <h2>Разделы</h2>
-            <p>Кнопки ниже добавляют новый раздел в конец отчёта. Сами блоки редактируются на всю ширину страницы.</p>
+            <p>
+              Выберите раздел, и новые разделы будут вставляться сразу после него. Сами блоки редактируются на всю
+              ширину страницы.
+            </p>
 
             <div className="level-picker" role="group" aria-label="Текущий уровень раздела">
               {([0, 1, 2] as SectionLevel[]).map((level) => (
@@ -527,10 +623,10 @@ export default function Home() {
 
             <div className="side-actions">
               <button className="button primary full" type="button" onClick={() => addSection()}>
-                Добавить раздел
+                {selectedSectionId ? "Добавить раздел после выбранного" : "Добавить раздел"}
               </button>
               <button className="button ghost full" type="button" onClick={addLowerSection}>
-                Добавить уровнем ниже
+                {selectedSectionId ? "Добавить уровнем ниже после выбранного" : "Добавить уровнем ниже"}
               </button>
               <button
                 className="button ghost full"
@@ -546,7 +642,12 @@ export default function Home() {
 
             <nav className="section-jump" aria-label="Навигация по разделам">
               {draft.sections.map((section, index) => (
-                <a className={`jump level-${section.level}`} href={`#${section.id}`} key={section.id}>
+                <a
+                  className={`jump level-${section.level} ${selectedSectionId === section.id ? "active" : ""}`}
+                  href={`#${section.id}`}
+                  key={section.id}
+                  onClick={() => setSelectedSectionId(section.id)}
+                >
                   {sectionDisplayInfo[section.id]?.fullTitle || section.title || `Раздел ${index + 1}`}
                 </a>
               ))}
@@ -562,7 +663,12 @@ export default function Home() {
             </div>
           ) : (
             draft.sections.map((section, sectionIndex) => (
-              <article className={`section-panel level-${section.level}`} id={section.id} key={section.id}>
+              <article
+                className={`section-panel level-${section.level} ${selectedSectionId === section.id ? "selected" : ""}`}
+                id={section.id}
+                key={section.id}
+                onClick={() => setSelectedSectionId(section.id)}
+              >
                 <div className="section-head">
                   <div className="section-title-row">
                     <span className="section-number">
@@ -605,6 +711,26 @@ export default function Home() {
                   </div>
 
                   <div className="section-tools">
+                    <button
+                      className="mini-button"
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        insertSectionAfter(section.id, section.level);
+                      }}
+                    >
+                      + После
+                    </button>
+                    <button
+                      className="mini-button"
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        insertSectionAfter(section.id, Math.min(section.level + 1, 2) as SectionLevel);
+                      }}
+                    >
+                      + Ниже
+                    </button>
                     <button className="mini-button" type="button" onClick={() => moveSection(section.id, -1)}>
                       Вверх
                     </button>
@@ -640,8 +766,11 @@ export default function Home() {
                         onMoveDown={() => moveBlock(section.id, block.id, 1)}
                         onMoveUp={() => moveBlock(section.id, block.id, -1)}
                         onRemove={() => removeBlock(section.id, block.id)}
+                        onAddGraphSeries={() => addGraphSeries(section.id, block.id)}
+                        onRemoveGraphSeries={(seriesId) => removeGraphSeries(section.id, block.id, seriesId)}
                         onRemoveListItem={(itemId) => removeListItem(section.id, block.id, itemId)}
                         onUpdate={(updater) => updateBlock(section.id, block.id, updater)}
+                        onUpdateGraphSeries={(seriesId, patch) => updateGraphSeries(section.id, block.id, seriesId, patch)}
                         onUpdateListItem={(itemId, patch) => updateListItem(section.id, block.id, itemId, patch)}
                       />
                     ))
@@ -728,24 +857,30 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function BlockEditor({
+  onAddGraphSeries,
   block,
   blockIndex,
   onAddListItem,
   onMoveDown,
   onMoveUp,
   onRemove,
+  onRemoveGraphSeries,
   onRemoveListItem,
   onUpdate,
+  onUpdateGraphSeries,
   onUpdateListItem
 }: {
+  onAddGraphSeries: () => void;
   block: ReportBlock;
   blockIndex: number;
   onAddListItem: () => void;
   onMoveDown: () => void;
   onMoveUp: () => void;
   onRemove: () => void;
+  onRemoveGraphSeries: (seriesId: string) => void;
   onRemoveListItem: (itemId: string) => void;
   onUpdate: (updater: (block: ReportBlock) => ReportBlock) => void;
+  onUpdateGraphSeries: (seriesId: string, patch: Partial<Pick<GraphSeries, "label" | "color" | "points">>) => void;
   onUpdateListItem: (itemId: string, patch: Partial<{ label: string; text: string }>) => void;
 }) {
   return (
@@ -954,38 +1089,74 @@ function BlockEditor({
                 <option value="bar">Столбчатый</option>
               </select>
             </label>
-            <label className="field">
-              <span>Цвет</span>
-              <select
-                value={(block as GraphBlock).color}
-                onChange={(event) =>
-                  onUpdate((current) =>
-                    current.type === "graph" ? { ...current, color: event.target.value } : current
-                  )
-                }
-              >
-                <option value="teal">Бирюзовый</option>
-                <option value="blue">Синий</option>
-                <option value="red">Красный</option>
-                <option value="orange">Оранжевый</option>
-                <option value="green!60!black">Зелёный</option>
-                <option value="violet">Фиолетовый</option>
-              </select>
-            </label>
+            <div className="field">
+              <span>Начинать ось с нуля</span>
+              <label className="toggle-field graph-zero-toggle">
+                <input
+                  checked={(block as GraphBlock).startAtZero}
+                  type="checkbox"
+                  onChange={(event) =>
+                    onUpdate((current) =>
+                      current.type === "graph" ? { ...current, startAtZero: event.target.checked } : current
+                    )
+                  }
+                />
+                <span>Да, от 0</span>
+              </label>
+            </div>
           </div>
-          <label className="field">
-            <span>Точки графика</span>
-            <textarea
-              className="large-textarea"
-              placeholder={"Каждая строка — одна точка.\nФормат: X;Y\nЯнв;12\nФев;18\nМар;15"}
-              value={(block as GraphBlock).points}
-              onChange={(event) =>
-                onUpdate((current) => (current.type === "graph" ? { ...current, points: event.target.value } : current))
-              }
-            />
-          </label>
+
+          <div className="series-list">
+            {(block as GraphBlock).series.map((series, index) => (
+              <div className="series-editor" key={series.id}>
+                <div className="series-head">
+                  <strong>Серия {index + 1}</strong>
+                  <button className="mini-button danger-text" type="button" onClick={() => onRemoveGraphSeries(series.id)}>
+                    Удалить серию
+                  </button>
+                </div>
+                <div className="block-grid">
+                  <label className="field">
+                    <span>Название серии</span>
+                    <input
+                      type="text"
+                      value={series.label}
+                      onChange={(event) => onUpdateGraphSeries(series.id, { label: event.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>Цвет серии</span>
+                    <select
+                      value={series.color}
+                      onChange={(event) => onUpdateGraphSeries(series.id, { color: event.target.value })}
+                    >
+                      <option value="teal">Бирюзовый</option>
+                      <option value="blue">Синий</option>
+                      <option value="red">Красный</option>
+                      <option value="orange">Оранжевый</option>
+                      <option value="green!60!black">Зелёный</option>
+                      <option value="violet">Фиолетовый</option>
+                    </select>
+                  </label>
+                </div>
+                <label className="field">
+                  <span>Точки серии</span>
+                  <textarea
+                    className="large-textarea"
+                    placeholder={"Каждая строка — одна точка.\nФормат: X;Y\nЯнв;12\nФев;18\nМар;15"}
+                    value={series.points}
+                    onChange={(event) => onUpdateGraphSeries(series.id, { points: event.target.value })}
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
+          <button className="chip-button" type="button" onClick={onAddGraphSeries}>
+            + Серия
+          </button>
           <p className="inline-note">
-            Можно использовать числа или подписи по оси X. Формат данных: одна строка — одна точка, `X;Y`.
+            Можно накладывать несколько серий на одну систему координат. Формат данных для каждой серии: одна строка —
+            одна точка, `X;Y`.
           </p>
         </>
       )}
