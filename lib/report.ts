@@ -20,6 +20,13 @@ export type CodeBlock = {
   code: string;
 };
 
+export type CalculationBlock = {
+  id: string;
+  type: "calculation";
+  caption: string;
+  code: string;
+};
+
 export type TableBlock = {
   id: string;
   type: "table";
@@ -63,6 +70,7 @@ export type ReportBlock =
   | TextBlock
   | FigureBlock
   | CodeBlock
+  | CalculationBlock
   | TableBlock
   | GraphBlock
   | ListBlock
@@ -148,6 +156,10 @@ export function createBlock(type: ReportBlock["type"], figureIndex = 1): ReportB
   }
 
   if (type === "code") {
+    return { id: makeId("block"), type, caption: "", code: "" };
+  }
+
+  if (type === "calculation") {
     return { id: makeId("block"), type, caption: "", code: "" };
   }
 
@@ -428,7 +440,7 @@ export function createCapabilitiesDraft(): ReportDraft {
               {
                 id: "item-cap-overview-3",
                 label: "blocks",
-                text: "Text, figure, calculations, table, graph, list and page break"
+                text: "Text, figure, code, calculation, table, graph, list and page break"
               }
             ]
           }
@@ -501,20 +513,29 @@ export function createCapabilitiesDraft(): ReportDraft {
       },
       {
         id: "section-cap-code-table",
-        title: "Calculations And Tables",
+        title: "Code, Calculations And Tables",
         level: 1,
         isNumbered: true,
         blocks: [
           {
             id: "block-cap-code",
             type: "code",
-            caption: "Example calculations block",
+            caption: "Example code block",
             code: `function buildProjectDraft() {
   return {
     meta: { tema: "Generated report" },
     sections: []
   };
 }`
+          },
+          {
+            id: "block-cap-calculation",
+            type: "calculation",
+            caption: "Example calculation block",
+            code: `P = U * I
+U = 220
+I = 0.75
+P = 165`
           },
           {
             id: "block-cap-table",
@@ -843,7 +864,7 @@ function buildPreamble() {
 \setlength{\cftbeforesubsecskip}{2pt}
 \setlength{\cftbeforesubsubsecskip}{1pt}
 
-% ===== Расчёты =====
+% ===== Код и расчёты =====
 \usepackage{fvextra}
 \DefineVerbatimEnvironment{CodeBlock}{Verbatim}{
   breaklines=true,
@@ -961,6 +982,7 @@ function buildBlocks(
   blocks: ReportBlock[],
   counters: {
     code: number;
+    calculation: number;
     table: number;
   }
 ) {
@@ -989,7 +1011,21 @@ function buildBlocks(
       const currentCodeIndex = counters.code++;
       const normalizedCode = normalizeCodeForLatex(block.code);
       out += String.raw`
-\noindent\textbf{Расчёт ${currentCodeIndex} - ${latexEscape(block.caption)}}\par
+\noindent\textbf{Код ${currentCodeIndex} - ${latexEscape(block.caption)}}\par
+\smallskip
+\begin{CodeBlock}
+` + normalizedCode + String.raw`
+\end{CodeBlock}
+
+`;
+      return;
+    }
+
+    if (block.type === "calculation") {
+      const currentCalculationIndex = counters.calculation++;
+      const normalizedCode = normalizeCodeForLatex(block.code);
+      out += String.raw`
+\noindent\textbf{Расчёт ${currentCalculationIndex} - ${latexEscape(block.caption)}}\par
 \smallskip
 \begin{CodeBlock}
 ` + normalizedCode + String.raw`
@@ -1080,6 +1116,7 @@ function buildBody(sections: ReportSection[]) {
   let out = "\n% ================== ОСНОВНАЯ ЧАСТЬ ==================\n\n";
   const counters = {
     code: 1,
+    calculation: 1,
     table: 1
   };
   const sectionDisplayInfo = buildSectionDisplayInfo(sections);

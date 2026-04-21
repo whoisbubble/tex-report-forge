@@ -14,6 +14,7 @@ import {
   makeId,
   normalizeDraft,
   type CodeBlock,
+  type CalculationBlock,
   type FigureBlock,
   type GraphBlock,
   type GraphSeries,
@@ -36,7 +37,8 @@ const capabilitiesFileKind = "project-capabilities";
 const blockLabels: Record<ReportBlock["type"], string> = {
   text: "Текст",
   figure: "Рисунок",
-  code: "Расчёты",
+  code: "Код",
+  calculation: "Расчёты",
   table: "Таблица",
   graph: "График",
   list: "Список",
@@ -557,6 +559,12 @@ export default function Home() {
         },
           {
             type: "code",
+            displayName: "Код",
+            purpose: "Кодовый фрагмент с безопасным verbatim-выводом",
+            fields: ["caption", "code"]
+          },
+          {
+            type: "calculation",
             displayName: "Расчёты",
             purpose: "Блок расчётов с безопасным verbatim-выводом",
             fields: ["caption", "code"]
@@ -588,7 +596,7 @@ export default function Home() {
           "Если этот JSON отправляется в нейросеть, она должна понимать структуру приложения и помогать заполнять разделы, блоки, графики и титульный лист без нарушения схемы.",
         recommendedWorkflow: [
           "Сначала определить структуру разделов",
-          "Потом наполнить блоки текстом, расчётами, таблицами и графиками",
+          "Потом наполнить блоки текстом, кодом, расчётами, таблицами и графиками",
           "После этого сгенерировать TEX или PDF"
         ]
       }
@@ -800,7 +808,7 @@ export default function Home() {
               <span>Глобальный поиск</span>
               <input
                 type="text"
-                placeholder="Заголовок, текст, расчёты, таблица, график..."
+                placeholder="Заголовок, текст, код, расчёты, таблица, график..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
@@ -808,7 +816,7 @@ export default function Home() {
             <p className="search-hint">
               {searchQuery.trim()
                 ? `Найдено разделов: ${filteredSections.length} из ${draft.sections.length}`
-                : "Поиск идёт по заголовкам, тексту, расчётам, таблицам, графикам и спискам."}
+                : "Поиск идёт по заголовкам, тексту, коду, расчётам, таблицам, графикам и спискам."}
             </p>
 
             <div className="level-picker" role="group" aria-label="Текущий уровень раздела">
@@ -869,7 +877,7 @@ export default function Home() {
           {draft.sections.length === 0 ? (
             <div className="empty-state">
               <h2>Разделов пока нет</h2>
-              <p>Добавьте первый раздел, а потом наполняйте его текстом, расчётами, таблицами и рисунками.</p>
+              <p>Добавьте первый раздел, а потом наполняйте его текстом, кодом, расчётами, таблицами и рисунками.</p>
             </div>
           ) : filteredSections.length === 0 ? (
             <div className="empty-state">
@@ -974,7 +982,7 @@ export default function Home() {
                   </div>
                 </div>
                 {!isCollapsed && <div className="block-toolbar">
-                  {(["text", "figure", "code", "table", "graph", "list", "pagebreak"] as ReportBlock["type"][]).map(
+                  {(["text", "figure", "code", "calculation", "table", "graph", "list", "pagebreak"] as ReportBlock["type"][]).map(
                     (type) => (
                       <button className="chip-button" key={type} type="button" onClick={() => addBlock(section.id, type)}>
                         + {blockLabels[type]}
@@ -991,7 +999,7 @@ export default function Home() {
                 ) : (
                 <div className="blocks">
                   {section.blocks.length === 0 ? (
-                    <p className="block-empty">В разделе ещё нет блоков. Добавьте текст, рисунок, расчёты или таблицу.</p>
+                    <p className="block-empty">В разделе ещё нет блоков. Добавьте текст, рисунок, код, расчёты или таблицу.</p>
                   ) : (
                     section.blocks.map((block, blockIndex) => (
                       <BlockEditor
@@ -1074,6 +1082,8 @@ function getBlockSearchText(block: ReportBlock) {
     case "figure":
       return `${block.filename} ${block.caption}`;
     case "code":
+      return `${block.caption} ${block.code}`;
+    case "calculation":
       return `${block.caption} ${block.code}`;
     case "table":
       return `${block.caption} ${block.cols} ${block.data}`;
@@ -1499,28 +1509,34 @@ function BlockEditor({
         </div>
       )}
 
-      {block.type === "code" && (
+      {(block.type === "code" || block.type === "calculation") && (
         <>
           <label className="field">
-            <span>Подпись к расчётам</span>
+            <span>{block.type === "code" ? "Подпись к коду" : "Подпись к расчётам"}</span>
             <input
               type="text"
-              value={(block as CodeBlock).caption}
+              value={(block as CodeBlock | CalculationBlock).caption}
               onChange={(event) =>
                 onUpdate((current) =>
-                  current.type === "code" ? { ...current, caption: event.target.value } : current
+                  current.type === "code" || current.type === "calculation"
+                    ? { ...current, caption: event.target.value }
+                    : current
                 )
               }
             />
           </label>
           <label className="field">
-            <span>Расчёты</span>
+            <span>{block.type === "code" ? "Код" : "Расчёты"}</span>
             <textarea
               className="code-textarea"
-              placeholder="Сюда можно вставлять расчёты как есть."
-              value={(block as CodeBlock).code}
+              placeholder={block.type === "code" ? "Сюда можно вставлять код как есть." : "Сюда можно вставлять расчёты как есть."}
+              value={(block as CodeBlock | CalculationBlock).code}
               onChange={(event) =>
-                onUpdate((current) => (current.type === "code" ? { ...current, code: event.target.value } : current))
+                onUpdate((current) =>
+                  current.type === "code" || current.type === "calculation"
+                    ? { ...current, code: event.target.value }
+                    : current
+                )
               }
             />
           </label>
