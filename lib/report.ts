@@ -310,7 +310,7 @@ export function createExampleDraft(): ReportDraft {
             items: [
               { id: makeId("item"), label: "", text: "анализ предметной области" },
               { id: makeId("item"), label: "", text: "описание ключевых сущностей" },
-              { id: makeId("item"), label: "", text: "подготовка таблиц, рисунков и фрагментов кода" }
+              { id: makeId("item"), label: "", text: "подготовка таблиц, рисунков и расчётов" }
             ]
           }
         ]
@@ -326,7 +326,7 @@ export function createExampleDraft(): ReportDraft {
           {
             id: makeId("block"),
             type: "code",
-            caption: "Пример обработчика",
+            caption: "Пример расчёта",
             code: `public void SaveReport(Report report)
 {
     if (report == null)
@@ -428,7 +428,7 @@ export function createCapabilitiesDraft(): ReportDraft {
               {
                 id: "item-cap-overview-3",
                 label: "blocks",
-                text: "Text, figure, code, table, graph, list and page break"
+                text: "Text, figure, calculations, table, graph, list and page break"
               }
             ]
           }
@@ -501,14 +501,14 @@ export function createCapabilitiesDraft(): ReportDraft {
       },
       {
         id: "section-cap-code-table",
-        title: "Code And Tables",
+        title: "Calculations And Tables",
         level: 1,
         isNumbered: true,
         blocks: [
           {
             id: "block-cap-code",
             type: "code",
-            caption: "Example code block",
+            caption: "Example calculations block",
             code: `function buildProjectDraft() {
   return {
     meta: { tema: "Generated report" },
@@ -843,7 +843,7 @@ function buildPreamble() {
 \setlength{\cftbeforesubsecskip}{2pt}
 \setlength{\cftbeforesubsubsecskip}{1pt}
 
-% ===== Код =====
+% ===== Расчёты =====
 \usepackage{fvextra}
 \DefineVerbatimEnvironment{CodeBlock}{Verbatim}{
   breaklines=true,
@@ -989,7 +989,7 @@ function buildBlocks(
       const currentCodeIndex = counters.code++;
       const normalizedCode = normalizeCodeForLatex(block.code);
       out += String.raw`
-\noindent\textbf{Код ${currentCodeIndex} - ${latexEscape(block.caption)}}\par
+\noindent\textbf{Расчёт ${currentCodeIndex} - ${latexEscape(block.caption)}}\par
 \smallskip
 \begin{CodeBlock}
 ` + normalizedCode + String.raw`

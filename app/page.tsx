@@ -36,7 +36,7 @@ const capabilitiesFileKind = "project-capabilities";
 const blockLabels: Record<ReportBlock["type"], string> = {
   text: "Текст",
   figure: "Рисунок",
-  code: "Код",
+  code: "Расчёты",
   table: "Таблица",
   graph: "График",
   list: "Список",
@@ -555,11 +555,12 @@ export default function Home() {
           purpose: "Внешняя картинка из images/",
           fields: ["filename", "caption"]
         },
-        {
-          type: "code",
-          purpose: "Кодовый фрагмент с безопасным verbatim-выводом",
-          fields: ["caption", "code"]
-        },
+          {
+            type: "code",
+            displayName: "Расчёты",
+            purpose: "Блок расчётов с безопасным verbatim-выводом",
+            fields: ["caption", "code"]
+          },
         {
           type: "table",
           purpose: "Таблица из строк и ячеек, разделенных ;",
@@ -587,7 +588,7 @@ export default function Home() {
           "Если этот JSON отправляется в нейросеть, она должна понимать структуру приложения и помогать заполнять разделы, блоки, графики и титульный лист без нарушения схемы.",
         recommendedWorkflow: [
           "Сначала определить структуру разделов",
-          "Потом наполнить блоки текстом, кодом, таблицами и графиками",
+          "Потом наполнить блоки текстом, расчётами, таблицами и графиками",
           "После этого сгенерировать TEX или PDF"
         ]
       }
@@ -799,7 +800,7 @@ export default function Home() {
               <span>Глобальный поиск</span>
               <input
                 type="text"
-                placeholder="Заголовок, текст, код, таблица, график..."
+                placeholder="Заголовок, текст, расчёты, таблица, график..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
@@ -807,7 +808,7 @@ export default function Home() {
             <p className="search-hint">
               {searchQuery.trim()
                 ? `Найдено разделов: ${filteredSections.length} из ${draft.sections.length}`
-                : "Поиск идёт по заголовкам, тексту, коду, таблицам, графикам и спискам."}
+                : "Поиск идёт по заголовкам, тексту, расчётам, таблицам, графикам и спискам."}
             </p>
 
             <div className="level-picker" role="group" aria-label="Текущий уровень раздела">
@@ -868,7 +869,7 @@ export default function Home() {
           {draft.sections.length === 0 ? (
             <div className="empty-state">
               <h2>Разделов пока нет</h2>
-              <p>Добавьте первый раздел, а потом наполняйте его текстом, кодом, таблицами и рисунками.</p>
+              <p>Добавьте первый раздел, а потом наполняйте его текстом, расчётами, таблицами и рисунками.</p>
             </div>
           ) : filteredSections.length === 0 ? (
             <div className="empty-state">
@@ -990,7 +991,7 @@ export default function Home() {
                 ) : (
                 <div className="blocks">
                   {section.blocks.length === 0 ? (
-                    <p className="block-empty">В разделе ещё нет блоков. Добавьте текст, рисунок, код или таблицу.</p>
+                    <p className="block-empty">В разделе ещё нет блоков. Добавьте текст, рисунок, расчёты или таблицу.</p>
                   ) : (
                     section.blocks.map((block, blockIndex) => (
                       <BlockEditor
@@ -1025,7 +1026,7 @@ export default function Home() {
           <div>
             <h2>.tex результат</h2>
             <p>
-              Полный файл обновляется автоматически. Нажмите генерацию, скопируйте код и откройте{" "}
+              Полный файл обновляется автоматически. Нажмите генерацию, скопируйте `.tex` и откройте{" "}
               <a href="https://www.overleaf.com/project" rel="noreferrer" target="_blank">
                 Overleaf
               </a>
@@ -1501,7 +1502,7 @@ function BlockEditor({
       {block.type === "code" && (
         <>
           <label className="field">
-            <span>Подпись к коду</span>
+            <span>Подпись к расчётам</span>
             <input
               type="text"
               value={(block as CodeBlock).caption}
@@ -1513,10 +1514,10 @@ function BlockEditor({
             />
           </label>
           <label className="field">
-            <span>Код</span>
+            <span>Расчёты</span>
             <textarea
               className="code-textarea"
-              placeholder="Сюда можно вставлять код как есть."
+              placeholder="Сюда можно вставлять расчёты как есть."
               value={(block as CodeBlock).code}
               onChange={(event) =>
                 onUpdate((current) => (current.type === "code" ? { ...current, code: event.target.value } : current))
