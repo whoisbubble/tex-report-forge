@@ -7,6 +7,7 @@ import {
   cloneBlock,
   cloneSection,
   createBlock,
+  createCapabilitiesDraft,
   createExampleDraft,
   createInitialDraft,
   createSection,
@@ -30,7 +31,7 @@ const storageKey = "tex-report-forge-draft";
 const projectFileApp = "tex-report-forge";
 const projectFileVersion = 1;
 const projectFileKind = "project";
-const capabilitiesFileKind = "capabilities";
+const capabilitiesFileKind = "project-capabilities";
 
 const blockLabels: Record<ReportBlock["type"], string> = {
   text: "Текст",
@@ -515,10 +516,12 @@ export default function Home() {
   }
 
   function downloadCapabilitiesJson() {
+    const capabilitiesDraft = createCapabilitiesDraft();
     const payload = {
       app: "MakeTexChigga",
       kind: capabilitiesFileKind,
       version: 2,
+      draft: capabilitiesDraft,
       generatedAt: new Date().toISOString(),
       purpose: "Редактор отчетов с генерацией LaTeX и локальной сборкой PDF.",
       formats: {
@@ -597,7 +600,7 @@ export default function Home() {
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = "make-tex-chigga-capabilities.instructions.json";
+    link.download = "make-tex-chigga-capabilities.json";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -637,16 +640,15 @@ export default function Home() {
     try {
       const text = await file.text();
       const parsed = JSON.parse(text) as unknown;
+      const importedDraft = extractDraftFromProjectFile(parsed);
 
-      if (isCapabilitiesExportFile(parsed)) {
+      if (!importedDraft && isCapabilitiesExportFile(parsed)) {
         setProjectStatus("error");
         window.alert(
           "Это не файл проекта, а описание возможностей приложения для нейронки. Его не нужно загружать в редактор. Для загрузки используйте файл из кнопки «Сохранить проект»."
         );
         return;
       }
-
-      const importedDraft = extractDraftFromProjectFile(parsed);
 
       if (!importedDraft) {
         throw new Error("Invalid project file");
@@ -698,7 +700,7 @@ export default function Home() {
             {projectStatus === "saved" ? "Проект сохранён" : "Сохранить проект"}
           </button>
           <button className="button ghost" type="button" onClick={downloadCapabilitiesJson}>
-            Описание для нейронки
+            Скачать capabilities.json
           </button>
           <button className="button ghost" type="button" onClick={() => projectInputRef.current?.click()}>
             {projectStatus === "loaded"

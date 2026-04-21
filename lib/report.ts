@@ -385,6 +385,244 @@ export function createExampleDraft(): ReportDraft {
   };
 }
 
+export function createCapabilitiesDraft(): ReportDraft {
+  return {
+    meta: {
+      ...defaultMeta,
+      tema: "Capabilities Template For AI-Generated Report Projects",
+      vidRaboty: "Reusable project schema example",
+      disciplina: "Automatic report generation",
+      shapkaStroka: "JSON template / importable draft / schema example",
+      student: "AI generated content",
+      rukovoditel: "Human review",
+      includeToc: true
+    },
+    sections: [
+      {
+        id: "section-cap-overview",
+        title: "Template Overview",
+        level: 0,
+        isNumbered: false,
+        blocks: [
+          {
+            id: "block-cap-overview-text",
+            type: "text",
+            content:
+              "This importable project demonstrates the JSON structure expected by the editor. A neural model can clone this shape, replace the content, and generate a new valid project file for the application."
+          },
+          {
+            id: "block-cap-overview-list",
+            type: "list",
+            ordered: true,
+            items: [
+              {
+                id: "item-cap-overview-1",
+                label: "meta",
+                text: "Title page fields used by the report and LaTeX export"
+              },
+              {
+                id: "item-cap-overview-2",
+                label: "sections",
+                text: "Top-level and nested headings with optional numbering"
+              },
+              {
+                id: "item-cap-overview-3",
+                label: "blocks",
+                text: "Text, figure, code, table, graph, list and page break"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: "section-cap-structure",
+        title: "Project Structure",
+        level: 0,
+        isNumbered: true,
+        blocks: [
+          {
+            id: "block-cap-structure-text",
+            type: "text",
+            content:
+              "A valid project contains meta information and an ordered array of sections. Every section has id, title, level, isNumbered and blocks."
+          }
+        ]
+      },
+      {
+        id: "section-cap-text-list",
+        title: "Text And Lists",
+        level: 1,
+        isNumbered: true,
+        blocks: [
+          {
+            id: "block-cap-text-list-text",
+            type: "text",
+            content:
+              "This subsection shows plain text blocks and list blocks. Lists may be ordered or unordered and each item stores label and text separately."
+          },
+          {
+            id: "block-cap-text-list-list",
+            type: "list",
+            ordered: false,
+            items: [
+              {
+                id: "item-cap-text-list-1",
+                label: "ordered",
+                text: "Boolean toggle for numbered or bullet list output"
+              },
+              {
+                id: "item-cap-text-list-2",
+                label: "items",
+                text: "Array of objects with id, label and text"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: "section-cap-figure",
+        title: "Figure Block",
+        level: 1,
+        isNumbered: true,
+        blocks: [
+          {
+            id: "block-cap-figure-text",
+            type: "text",
+            content:
+              "Figure blocks reference an external file from the images directory and provide a caption for LaTeX."
+          },
+          {
+            id: "block-cap-figure",
+            type: "figure",
+            filename: "images/architecture-example.png",
+            caption: "Example architecture diagram used by the figure block"
+          }
+        ]
+      },
+      {
+        id: "section-cap-code-table",
+        title: "Code And Tables",
+        level: 1,
+        isNumbered: true,
+        blocks: [
+          {
+            id: "block-cap-code",
+            type: "code",
+            caption: "Example code block",
+            code: `function buildProjectDraft() {
+  return {
+    meta: { tema: "Generated report" },
+    sections: []
+  };
+}`
+          },
+          {
+            id: "block-cap-table",
+            type: "table",
+            caption: "Example table block",
+            cols: "3",
+            data: "Field;Type;Purpose\nmeta;object;Title page data\nsections;array;Document structure\nblocks;array;Section content"
+          }
+        ]
+      },
+      {
+        id: "section-cap-graphs",
+        title: "Graphs",
+        level: 1,
+        isNumbered: true,
+        blocks: [
+          {
+            id: "block-cap-graphs-text",
+            type: "text",
+            content:
+              "Graph blocks support multiple series, line and bar modes, labels, colors and preview inside the editor."
+          },
+          {
+            id: "block-cap-graph-line",
+            type: "graph",
+            caption: "Line graph with multiple series",
+            title: "Request latency by stage",
+            xLabel: "Stage",
+            yLabel: "ms",
+            mode: "line",
+            startAtZero: true,
+            series: [
+              {
+                id: "series-cap-line-api",
+                label: "API",
+                color: "blue",
+                points: "1;120\n2;96\n3;140\n4;110"
+              },
+              {
+                id: "series-cap-line-sql",
+                label: "SQL",
+                color: "red",
+                points: "1;80\n2;88\n3;101\n4;92"
+              }
+            ]
+          },
+          {
+            id: "block-cap-graph-bar",
+            type: "graph",
+            caption: "Bar graph with named categories",
+            title: "Coverage by module",
+            xLabel: "Module",
+            yLabel: "%",
+            mode: "bar",
+            startAtZero: true,
+            series: [
+              {
+                id: "series-cap-bar-before",
+                label: "Before",
+                color: "orange",
+                points: "Auth;55\nReports;48\nGraphs;62"
+              },
+              {
+                id: "series-cap-bar-after",
+                label: "After",
+                color: "green!60!black",
+                points: "Auth;84\nReports;78\nGraphs;90"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: "section-cap-subsub",
+        title: "Nested Heading Example",
+        level: 2,
+        isNumbered: true,
+        blocks: [
+          {
+            id: "block-cap-subsub-text",
+            type: "text",
+            content:
+              "This subsubsection exists to demonstrate heading levels such as 2.1.1 in the editor and exported LaTeX."
+          },
+          {
+            id: "block-cap-pagebreak",
+            type: "pagebreak"
+          }
+        ]
+      },
+      {
+        id: "section-cap-conclusion",
+        title: "Conclusion",
+        level: 0,
+        isNumbered: false,
+        blocks: [
+          {
+            id: "block-cap-conclusion-text",
+            type: "text",
+            content:
+              "This file is both a valid importable project and a schema example for AI generation. Replace the meta fields, section titles and block contents while preserving the overall JSON shape."
+          }
+        ]
+      }
+    ]
+  };
+}
+
 function latexEscape(text: string) {
   if (!text) return "";
 
