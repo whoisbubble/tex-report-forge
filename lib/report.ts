@@ -58,6 +58,7 @@ export type ReportSection = {
   id: string;
   title: string;
   level: SectionLevel;
+  isNumbered: boolean;
   blocks: ReportBlock[];
 };
 
@@ -80,6 +81,12 @@ export type ReportMeta = {
 export type ReportDraft = {
   meta: ReportMeta;
   sections: ReportSection[];
+};
+
+export type SectionDisplayInfo = {
+  fullTitle: string;
+  numberingLabel: string | null;
+  rawNumber: string | null;
 };
 
 export const defaultMeta: ReportMeta = {
@@ -140,11 +147,12 @@ export function createBlock(type: ReportBlock["type"], figureIndex = 1): ReportB
   return { id: makeId("block"), type: "pagebreak" };
 }
 
-export function createSection(level: SectionLevel, title = "Новый раздел"): ReportSection {
+export function createSection(level: SectionLevel, title = "Новый раздел", isNumbered = true): ReportSection {
   return {
     id: makeId("section"),
     title,
     level,
+    isNumbered,
     blocks: []
   };
 }
@@ -157,6 +165,7 @@ export function createInitialDraft(): ReportDraft {
         id: "section-task",
         title: "Задание",
         level: 0,
+        isNumbered: false,
         blocks: [
           {
             id: "block-task-text",
@@ -169,6 +178,7 @@ export function createInitialDraft(): ReportDraft {
         id: "section-work",
         title: "Ход работы",
         level: 0,
+        isNumbered: true,
         blocks: [
           {
             id: "block-work-text",
@@ -195,7 +205,7 @@ export function createExampleDraft(): ReportDraft {
     },
     sections: [
       {
-        ...createSection(0, "Введение"),
+        ...createSection(0, "Введение", false),
         blocks: [
           {
             id: makeId("block"),
@@ -207,7 +217,7 @@ export function createExampleDraft(): ReportDraft {
         ]
       },
       {
-        ...createSection(0, "1. Ход работы"),
+        ...createSection(0, "Ход работы"),
         blocks: [
           {
             id: makeId("block"),
@@ -227,7 +237,7 @@ export function createExampleDraft(): ReportDraft {
         ]
       },
       {
-        ...createSection(1, "1.1 Описание модели"),
+        ...createSection(1, "Описание модели"),
         blocks: [
           {
             id: makeId("block"),
@@ -258,7 +268,7 @@ export function createExampleDraft(): ReportDraft {
         ]
       },
       {
-        ...createSection(0, "Заключение"),
+        ...createSection(0, "Заключение", false),
         blocks: [
           {
             id: makeId("block"),
@@ -601,9 +611,10 @@ function buildBody(sections: ReportSection[]) {
     code: 1,
     table: 1
   };
+  const sectionDisplayInfo = buildSectionDisplayInfo(sections);
 
   sections.forEach((section) => {
-    const title = section.title.trim();
+    const title = sectionDisplayInfo[section.id]?.fullTitle ?? section.title.trim();
     if (!title) return;
 
     const cmd = section.level === 0 ? "section" : section.level === 1 ? "subsection" : "subsubsection";
@@ -624,4 +635,57 @@ export function buildFullTex(draft: ReportDraft) {
     buildBody(draft.sections),
     "\n\\end{document}\n"
   ].join("");
+}
+
+export function normalizeDraft(draft: ReportDraft): ReportDraft {
+  return {
+    ...draft,
+    meta: {
+      ...defaultMeta,
+      ...draft.meta
+    },
+    sections: draft.sections.map((section) => ({
+      ...section,
+      isNumbered: section.isNumbered ?? true
+    }))
+  };
+}
+
+export function buildSectionDisplayInfo(sections: ReportSection[]) {
+  const counters = [0, 0, 0];
+  const displayInfo: Record<string, SectionDisplayInfo> = {};
+
+  sections.forEach((section) => {
+    let rawNumber: string | null = null;
+
+    if (section.isNumbered) {
+      if (section.level === 0) {
+        counters[0] += 1;
+        counters[1] = 0;
+        counters[2] = 0;
+        rawNumber = `${counters[0]}`;
+      } else if (section.level === 1) {
+        if (counters[0] === 0) counters[0] = 1;
+        counters[1] += 1;
+        counters[2] = 0;
+        rawNumber = `${counters[0]}.${counters[1]}`;
+      } else {
+        if (counters[0] === 0) counters[0] = 1;
+        if (counters[1] === 0) counters[1] = 1;
+        counters[2] += 1;
+        rawNumber = `${counters[0]}.${counters[1]}.${counters[2]}`;
+      }
+    }
+
+    const numberingLabel = rawNumber ? (section.level === 0 ? `${rawNumber}.` : rawNumber) : null;
+    const trimmedTitle = section.title.trim();
+
+    displayInfo[section.id] = {
+      rawNumber,
+      numberingLabel,
+      fullTitle: numberingLabel ? `${numberingLabel} ${trimmedTitle}`.trim() : trimmedTitle
+    };
+  });
+
+  return displayInfo;
 }

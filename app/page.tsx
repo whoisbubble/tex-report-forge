@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import {
   buildFullTex,
+  buildSectionDisplayInfo,
   createBlock,
   createExampleDraft,
   createInitialDraft,
   createSection,
   makeId,
+  normalizeDraft,
   type CodeBlock,
   type FigureBlock,
   type ListBlock,
@@ -68,6 +70,7 @@ export default function Home() {
   const projectInputRef = useRef<HTMLInputElement>(null);
 
   const tex = useMemo(() => buildFullTex(draft), [draft]);
+  const sectionDisplayInfo = useMemo(() => buildSectionDisplayInfo(draft.sections), [draft.sections]);
   const isTexDirty = generatedSnapshot !== "" && generatedSnapshot !== tex;
   const blockCount = useMemo(
     () => draft.sections.reduce((total, section) => total + section.blocks.length, 0),
@@ -79,7 +82,7 @@ export default function Home() {
       const saved = window.localStorage.getItem(storageKey);
 
       if (saved) {
-        setDraft(JSON.parse(saved) as ReportDraft);
+        setDraft(normalizeDraft(JSON.parse(saved) as ReportDraft));
       }
     } finally {
       setLoaded(true);
@@ -145,7 +148,7 @@ export default function Home() {
     });
   }
 
-  function updateSection(sectionId: string, patch: Partial<{ title: string; level: SectionLevel }>) {
+  function updateSection(sectionId: string, patch: Partial<{ title: string; level: SectionLevel; isNumbered: boolean }>) {
     setDraft((previous) => ({
       ...previous,
       sections: previous.sections.map((section) =>
@@ -331,7 +334,7 @@ export default function Home() {
 
       if (!window.confirm("Загрузить проект из файла? Текущий черновик будет заменён.")) return;
 
-      setDraft(importedDraft);
+      setDraft(normalizeDraft(importedDraft));
       setCurrentLevel(0);
       setGeneratedSnapshot("");
       setProjectStatus("loaded");
@@ -485,7 +488,7 @@ export default function Home() {
             <nav className="section-jump" aria-label="Навигация по разделам">
               {draft.sections.map((section, index) => (
                 <a className={`jump level-${section.level}`} href={`#${section.id}`} key={section.id}>
-                  {index + 1}. {section.title || "Без названия"}
+                  {sectionDisplayInfo[section.id]?.fullTitle || section.title || `Раздел ${index + 1}`}
                 </a>
               ))}
             </nav>
@@ -503,9 +506,16 @@ export default function Home() {
               <article className={`section-panel level-${section.level}`} id={section.id} key={section.id}>
                 <div className="section-head">
                   <div className="section-title-row">
-                    <span className="section-number">{sectionIndex + 1}</span>
+                    <span className="section-number">
+                      {sectionDisplayInfo[section.id]?.numberingLabel || "∅"}
+                    </span>
                     <label className="field title-field">
-                      <span>{section.level === 0 ? "Заголовок раздела" : "Подзаголовок"}</span>
+                      <span>
+                        {section.level === 0 ? "Заголовок раздела" : "Подзаголовок"}
+                        {sectionDisplayInfo[section.id]?.numberingLabel
+                          ? ` · ${sectionDisplayInfo[section.id].numberingLabel}`
+                          : " · без номера"}
+                      </span>
                       <input
                         type="text"
                         value={section.title}
@@ -524,6 +534,14 @@ export default function Home() {
                         <option value={1}>1 - subsection</option>
                         <option value={2}>2 - subsubsection</option>
                       </select>
+                    </label>
+                    <label className="toggle-field section-toggle">
+                      <input
+                        type="checkbox"
+                        checked={!section.isNumbered}
+                        onChange={(event) => updateSection(section.id, { isNumbered: !event.target.checked })}
+                      />
+                      <span>Убрать номер заголовка</span>
                     </label>
                   </div>
 
