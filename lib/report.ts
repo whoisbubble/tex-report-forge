@@ -121,17 +121,17 @@ export type SectionDisplayInfo = {
 };
 
 export const defaultMeta: ReportMeta = {
-  kafedra: "РРЅС„РѕСЂРјР°С†РёРѕРЅРЅС‹Рµ С‚РµС…РЅРѕР»РѕРіРёРё Рё СЃРёСЃС‚РµРјС‹",
-  tema: "РђРЅР°Р»РёР· РРЎ",
-  vidRaboty: "РџСЂР°РєС‚РёС‡РµСЃРєР°СЏ СЂР°Р±РѕС‚Р° в„–2",
-  disciplina: "РўРµРѕСЂРёСЏ РёРЅС„РѕСЂРјР°С†РёРѕРЅРЅС‹С… РїСЂРѕС†РµСЃСЃРѕРІ Рё СЃРёСЃС‚РµРј",
-  shapkaStroka: "РџР  09.03.02. 17.02.Р‘Рћ231РРЎРў",
-  studentLabel: "РЎС‚СѓРґРµРЅС‚",
-  rukovoditelLabel: "РџСЂРѕРІРµСЂРёР»",
+  kafedra: "Информационные технологии и системы",
+  tema: "Анализ ИС",
+  vidRaboty: "Практическая работа №2",
+  disciplina: "Теория информационных процессов и систем",
+  shapkaStroka: "ПР 09.03.02. 17.02.БО231ИСТ",
+  studentLabel: "Студент",
+  rukovoditelLabel: "Проверил",
   rukovoditelDolzhnost: "",
-  student: "Рў.Рџ.~Р§РёРіРёСЂС‘РІ",
-  rukovoditel: "Рћ.Р’.~Р С‹Р±РєРёРЅР°",
-  city: "РҐР°Р±Р°СЂРѕРІСЃРє",
+  student: "Т.П.~Чигирёв",
+  rukovoditel: "О.В.~Рыбкина",
+  city: "Хабаровск",
   year: "2025",
   includeToc: false
 };
@@ -189,7 +189,7 @@ export function createBlock(type: ReportBlock["type"], figureIndex = 1): ReportB
       series: [
         {
           id: makeId("series"),
-          label: "РЎРµСЂРёСЏ 1",
+          label: "Серия 1",
           color: "teal",
           points: "1;10\n2;15\n3;12"
         }
@@ -209,7 +209,7 @@ export function createBlock(type: ReportBlock["type"], figureIndex = 1): ReportB
   return { id: makeId("block"), type: "pagebreak" };
 }
 
-export function createSection(level: SectionLevel, title = "РќРѕРІС‹Р№ СЂР°Р·РґРµР»", isNumbered = true): ReportSection {
+export function createSection(level: SectionLevel, title = "Новый раздел", isNumbered = true): ReportSection {
   return {
     id: makeId("section"),
     title,
@@ -252,7 +252,7 @@ export function cloneSection(section: ReportSection): ReportSection {
   return {
     ...section,
     id: makeId("section"),
-    title: section.title ? `${section.title} (РєРѕРїРёСЏ)` : "РќРѕРІС‹Р№ СЂР°Р·РґРµР» (РєРѕРїРёСЏ)",
+    title: section.title ? `${section.title} (копия)` : "Новый раздел (копия)",
     blocks: section.blocks.map((block) => cloneBlock(block))
   };
 }
@@ -263,27 +263,27 @@ export function createInitialDraft(): ReportDraft {
     sections: [
       {
         id: "section-task",
-        title: "Р—Р°РґР°РЅРёРµ",
+        title: "Задание",
         level: 0,
         isNumbered: false,
         blocks: [
           {
             id: "block-task-text",
             type: "text",
-            content: "Р·РґРµСЃСЊ РІРїРёСЃР°С‚СЊ Р·Р°РґР°РЅРёРµ"
+            content: "здесь вписать задание"
           }
         ]
       },
       {
         id: "section-work",
-        title: "РҐРѕРґ СЂР°Р±РѕС‚С‹",
+        title: "Ход работы",
         level: 0,
         isNumbered: true,
         blocks: [
           {
             id: "block-work-text",
             type: "text",
-            content: "РћРїРёС€РёС‚Рµ С…РѕРґ РІС‹РїРѕР»РЅРµРЅРёСЏ СЂР°Р±РѕС‚С‹."
+            content: "Опишите ход выполнения работы."
           }
         ]
       }
@@ -295,59 +295,59 @@ export function createExampleDraft(): ReportDraft {
   return {
     meta: {
       ...defaultMeta,
-      tema: "РћР Р“РђРќРР—РђР¦РРЇ IP-РўР•Р›Р•Р¤РћРќРР РќРђ РћРЎРќРћР’Р• РћРўР•Р§Р•РЎРўР’Р•РќРќР«РҐ Р Р•РЁР•РќРР™",
-      vidRaboty: "Р Р°СЃС‡С‘С‚РЅРѕ-РіСЂР°С„РёС‡РµСЃРєР°СЏ СЂР°Р±РѕС‚Р° в„–1",
-      disciplina: "РџСЂРѕРµРєС‚РёСЂРѕРІР°РЅРёРµ РіСЂР°С„РёС‡РµСЃРєРёС… РёРЅС‚РµСЂС„РµР№СЃРѕРІ РёРЅС„РѕСЂРјР°С†РёРѕРЅРЅС‹С… СЃРёСЃС‚РµРј",
-      shapkaStroka: "Р›Р  09.03.02. 17.02.Р‘Рћ231РРЎРў",
-      student: "Рў.\\,Рџ.~Р§РёРіРёСЂС‘РІ",
-      rukovoditel: "Рћ.\\,Р’.~Р С‹Р±РєРёРЅР°",
+      tema: "ОРГАНИЗАЦИЯ IP-ТЕЛЕФОНИИ НА ОСНОВЕ ОТЕЧЕСТВЕННЫХ РЕШЕНИЙ",
+      vidRaboty: "Расчётно-графическая работа №1",
+      disciplina: "Проектирование графических интерфейсов информационных систем",
+      shapkaStroka: "ЛР 09.03.02. 17.02.БО231ИСТ",
+      student: "Т.\\,П.~Чигирёв",
+      rukovoditel: "О.\\,В.~Рыбкина",
       includeToc: true
     },
     sections: [
       {
-        ...createSection(0, "Р’РІРµРґРµРЅРёРµ", false),
+        ...createSection(0, "Введение", false),
         blocks: [
           {
             id: makeId("block"),
             type: "text",
             content:
-              "Р’ СЂР°Р±РѕС‚Рµ СЂР°СЃСЃРјР°С‚СЂРёРІР°РµС‚СЃСЏ СЃС‚СЂСѓРєС‚СѓСЂР° РёРЅС„РѕСЂРјР°С†РёРѕРЅРЅРѕР№ СЃРёСЃС‚РµРјС‹, РµС‘ РѕСЃРЅРѕРІРЅС‹Рµ РєРѕРјРїРѕРЅРµРЅС‚С‹ Рё СЃС†РµРЅР°СЂРёРё РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ. Р¦РµР»СЊ РѕС‚С‡С‘С‚Р° вЂ” Р·Р°С„РёРєСЃРёСЂРѕРІР°С‚СЊ С…РѕРґ РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РґР°РЅРёСЏ Рё РѕС„РѕСЂРјРёС‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚С‹ РІ РµРґРёРЅРѕРј С€Р°Р±Р»РѕРЅРµ."
+              "В работе рассматривается структура информационной системы, её основные компоненты и сценарии использования. Цель отчёта — зафиксировать ход выполнения задания и оформить результаты в едином шаблоне."
           },
           createBlock("pagebreak")
         ]
       },
       {
-        ...createSection(0, "РҐРѕРґ СЂР°Р±РѕС‚С‹"),
+        ...createSection(0, "Ход работы"),
         blocks: [
           {
             id: makeId("block"),
             type: "text",
-            content: "Р”Р»СЏ РІС‹РїРѕР»РЅРµРЅРёСЏ СЂР°Р±РѕС‚С‹ Р±С‹Р»Рё РІС‹РґРµР»РµРЅС‹ СЃР»РµРґСѓСЋС‰РёРµ СЌС‚Р°РїС‹:"
+            content: "Для выполнения работы были выделены следующие этапы:"
           },
           {
             id: makeId("block"),
             type: "list",
             ordered: true,
             items: [
-              { id: makeId("item"), label: "", text: "Р°РЅР°Р»РёР· РїСЂРµРґРјРµС‚РЅРѕР№ РѕР±Р»Р°СЃС‚Рё" },
-              { id: makeId("item"), label: "", text: "РѕРїРёСЃР°РЅРёРµ РєР»СЋС‡РµРІС‹С… СЃСѓС‰РЅРѕСЃС‚РµР№" },
-              { id: makeId("item"), label: "", text: "РїРѕРґРіРѕС‚РѕРІРєР° С‚Р°Р±Р»РёС†, СЂРёСЃСѓРЅРєРѕРІ Рё СЂР°СЃС‡С‘С‚РѕРІ" }
+              { id: makeId("item"), label: "", text: "анализ предметной области" },
+              { id: makeId("item"), label: "", text: "описание ключевых сущностей" },
+              { id: makeId("item"), label: "", text: "подготовка таблиц, рисунков и расчётов" }
             ]
           }
         ]
       },
       {
-        ...createSection(1, "РћРїРёСЃР°РЅРёРµ РјРѕРґРµР»Рё"),
+        ...createSection(1, "Описание модели"),
         blocks: [
           {
             id: makeId("block"),
             type: "text",
-            content: "РќРёР¶Рµ РїСЂРёРІРµРґС‘РЅ РїСЂРёРјРµСЂ РїСЂРѕРіСЂР°РјРјРЅРѕРіРѕ С„СЂР°РіРјРµРЅС‚Р°, РєРѕС‚РѕСЂС‹Р№ РјРѕР¶РЅРѕ РІСЃС‚Р°РІР»СЏС‚СЊ Р±РµР· СЂСѓС‡РЅРѕР№ СЌРєСЂР°РЅРёР·Р°С†РёРё СЃРёРјРІРѕР»РѕРІ."
+            content: "Ниже приведён пример программного фрагмента, который можно вставлять без ручной экранизации символов."
           },
           {
             id: makeId("block"),
             type: "code",
-            caption: "РџСЂРёРјРµСЂ СЂР°СЃС‡С‘С‚Р°",
+            caption: "Пример расчёта",
             code: `public void SaveReport(Report report)
 {
     if (report == null)
@@ -361,17 +361,17 @@ export function createExampleDraft(): ReportDraft {
           {
             id: makeId("block"),
             type: "table",
-            caption: "РџР»Р°РЅ РїСЂРѕРІРµСЂРєРё",
+            caption: "План проверки",
             cols: "3",
-            data: "Р­С‚Р°Рї;Р”РµР№СЃС‚РІРёРµ;Р РµР·СѓР»СЊС‚Р°С‚\n1;Р—Р°РїРѕР»РЅРµРЅРёРµ С‚РёС‚СѓР»СЊРЅРѕРіРѕ Р»РёСЃС‚Р°;Р”Р°РЅРЅС‹Рµ СЃРѕС…СЂР°РЅРµРЅС‹\n2;Р”РѕР±Р°РІР»РµРЅРёРµ СЂР°Р·РґРµР»РѕРІ;РЎС‚СЂСѓРєС‚СѓСЂР° РѕС‚С‡С‘С‚Р° РіРѕС‚РѕРІР°\n3;Р“РµРЅРµСЂР°С†РёСЏ .tex;Р¤Р°Р№Р» РјРѕР¶РЅРѕ РєРѕРјРїРёР»РёСЂРѕРІР°С‚СЊ"
+            data: "Этап;Действие;Результат\n1;Заполнение титульного листа;Данные сохранены\n2;Добавление разделов;Структура отчёта готова\n3;Генерация .tex;Файл можно компилировать"
           },
           {
             id: makeId("block"),
             type: "graph",
-            caption: "РЎРєРѕСЂРѕСЃС‚СЊ РѕР±СЂР°Р±РѕС‚РєРё Р·Р°РїСЂРѕСЃРѕРІ",
-            title: "РќР°РіСЂСѓР·РєР° РїРѕ СЌС‚Р°РїР°Рј",
-            xLabel: "Р­С‚Р°Рї",
-            yLabel: "РјСЃ",
+            caption: "Скорость обработки запросов",
+            title: "Нагрузка по этапам",
+            xLabel: "Этап",
+            yLabel: "мс",
             mode: "line",
             startAtZero: true,
             series: [
@@ -392,13 +392,13 @@ export function createExampleDraft(): ReportDraft {
         ]
       },
       {
-        ...createSection(0, "Р—Р°РєР»СЋС‡РµРЅРёРµ", false),
+        ...createSection(0, "Заключение", false),
         blocks: [
           {
             id: makeId("block"),
             type: "text",
             content:
-              "Р’ СЂРµР·СѓР»СЊС‚Р°С‚Рµ СЂР°Р±РѕС‚С‹ Р±С‹Р» РїРѕРґРіРѕС‚РѕРІР»РµРЅ РѕС‚С‡С‘С‚ РІ С„РѕСЂРјР°С‚Рµ LaTeX. РџРѕР»СѓС‡РµРЅРЅС‹Р№ С„Р°Р№Р» РјРѕР¶РЅРѕ РїРµСЂРµРЅРµСЃС‚Рё РІ Overleaf РёР»Рё СЃРєРѕРјРїРёР»РёСЂРѕРІР°С‚СЊ Р»РѕРєР°Р»СЊРЅРѕ."
+              "В результате работы был подготовлен отчёт в формате LaTeX. Полученный файл можно перенести в Overleaf или скомпилировать локально."
           }
         ]
       }
@@ -672,86 +672,86 @@ function normalizeCodeForLatex(code: string) {
 }
 
 const unicodeMathReplacements: Array<[RegExp, string]> = [
-  [/в‰¤/g, String.raw`\leq `],
-  [/в‰Ґ/g, String.raw`\geq `],
-  [/в‰ /g, String.raw`\neq `],
-  [/в‰€/g, String.raw`\approx `],
-  [/в‰ѓ/g, String.raw`\simeq `],
-  [/в‰…/g, String.raw`\cong `],
-  [/в‰Ў/g, String.raw`\equiv `],
-  [/В±/g, String.raw`\pm `],
-  [/в€“/g, String.raw`\mp `],
-  [/Г—/g, String.raw`\times `],
-  [/Г·/g, String.raw`\div `],
-  [/В·/g, String.raw`\cdot `],
-  [/в€љ/g, String.raw`\sqrt{}`],
-  [/в€ћ/g, String.raw`\infty `],
-  [/в€‘/g, String.raw`\sum `],
-  [/в€Џ/g, String.raw`\prod `],
-  [/в€«/g, String.raw`\int `],
-  [/в€‚/g, String.raw`\partial `],
-  [/в€‡/g, String.raw`\nabla `],
-  [/в€€/g, String.raw`\in `],
-  [/в€‰/g, String.raw`\notin `],
-  [/в€‹/g, String.raw`\ni `],
-  [/в€©/g, String.raw`\cap `],
-  [/в€Є/g, String.raw`\cup `],
-  [/вЉ‚/g, String.raw`\subset `],
-  [/вЉ†/g, String.raw`\subseteq `],
-  [/вЉѓ/g, String.raw`\supset `],
-  [/вЉ‡/g, String.raw`\supseteq `],
-  [/в€…/g, String.raw`\varnothing `],
-  [/в€Ђ/g, String.raw`\forall `],
-  [/в€ѓ/g, String.raw`\exists `],
-  [/В¬/g, String.raw`\neg `],
-  [/в€§/g, String.raw`\land `],
-  [/в€Ё/g, String.raw`\lor `],
-  [/в†’/g, String.raw`\to `],
-  [/в†ђ/g, String.raw`\leftarrow `],
-  [/в†”/g, String.raw`\leftrightarrow `],
-  [/в‡’/g, String.raw`\Rightarrow `],
-  [/в‡ђ/g, String.raw`\Leftarrow `],
-  [/в‡”/g, String.raw`\Leftrightarrow `],
-  [/в€ќ/g, String.raw`\propto `],
-  [/в€ґ/g, String.raw`\therefore `],
-  [/в€µ/g, String.raw`\because `],
-  [/в€ /g, String.raw`\angle `],
-  [/вЉҐ/g, String.raw`\perp `],
-  [/в€Ґ/g, String.raw`\parallel `],
-  [/в‰Є/g, String.raw`\ll `],
-  [/в‰«/g, String.raw`\gg `],
-  [/О±/g, String.raw`\alpha `],
-  [/ОІ/g, String.raw`\beta `],
-  [/Оі/g, String.raw`\gamma `],
-  [/Оґ/g, String.raw`\delta `],
-  [/Оµ/g, String.raw`\varepsilon `],
-  [/О¶/g, String.raw`\zeta `],
-  [/О·/g, String.raw`\eta `],
-  [/Оё/g, String.raw`\theta `],
-  [/О№/g, String.raw`\iota `],
-  [/Оє/g, String.raw`\kappa `],
-  [/О»/g, String.raw`\lambda `],
-  [/Ој/g, String.raw`\mu `],
-  [/ОЅ/g, String.raw`\nu `],
-  [/Оѕ/g, String.raw`\xi `],
-  [/ПЂ/g, String.raw`\pi `],
-  [/ПЃ/g, String.raw`\rho `],
-  [/Пѓ/g, String.raw`\sigma `],
-  [/П„/g, String.raw`\tau `],
-  [/П†/g, String.raw`\varphi `],
-  [/П‡/g, String.raw`\chi `],
-  [/П€/g, String.raw`\psi `],
-  [/П‰/g, String.raw`\omega `],
-  [/О“/g, String.raw`\Gamma `],
-  [/О”/g, String.raw`\Delta `],
-  [/О/g, String.raw`\Theta `],
-  [/О›/g, String.raw`\Lambda `],
-  [/Оћ/g, String.raw`\Xi `],
-  [/О /g, String.raw`\Pi `],
-  [/ОЈ/g, String.raw`\Sigma `],
-  [/О¦/g, String.raw`\Phi `],
-  [/ОЁ/g, String.raw`\Psi `],
-  [/О©/g, String.raw`\Omega `]
+  [/≤/g, String.raw`\leq `],
+  [/≥/g, String.raw`\geq `],
+  [/≠/g, String.raw`\neq `],
+  [/≈/g, String.raw`\approx `],
+  [/≃/g, String.raw`\simeq `],
+  [/≅/g, String.raw`\cong `],
+  [/≡/g, String.raw`\equiv `],
+  [/±/g, String.raw`\pm `],
+  [/∓/g, String.raw`\mp `],
+  [/×/g, String.raw`\times `],
+  [/÷/g, String.raw`\div `],
+  [/·/g, String.raw`\cdot `],
+  [/√/g, String.raw`\sqrt{}`],
+  [/∞/g, String.raw`\infty `],
+  [/∑/g, String.raw`\sum `],
+  [/∏/g, String.raw`\prod `],
+  [/∫/g, String.raw`\int `],
+  [/∂/g, String.raw`\partial `],
+  [/∇/g, String.raw`\nabla `],
+  [/∈/g, String.raw`\in `],
+  [/∉/g, String.raw`\notin `],
+  [/∋/g, String.raw`\ni `],
+  [/∩/g, String.raw`\cap `],
+  [/∪/g, String.raw`\cup `],
+  [/⊂/g, String.raw`\subset `],
+  [/⊆/g, String.raw`\subseteq `],
+  [/⊃/g, String.raw`\supset `],
+  [/⊇/g, String.raw`\supseteq `],
+  [/∅/g, String.raw`\varnothing `],
+  [/∀/g, String.raw`\forall `],
+  [/∃/g, String.raw`\exists `],
+  [/¬/g, String.raw`\neg `],
+  [/∧/g, String.raw`\land `],
+  [/∨/g, String.raw`\lor `],
+  [/→/g, String.raw`\to `],
+  [/←/g, String.raw`\leftarrow `],
+  [/↔/g, String.raw`\leftrightarrow `],
+  [/⇒/g, String.raw`\Rightarrow `],
+  [/⇐/g, String.raw`\Leftarrow `],
+  [/⇔/g, String.raw`\Leftrightarrow `],
+  [/∝/g, String.raw`\propto `],
+  [/∴/g, String.raw`\therefore `],
+  [/∵/g, String.raw`\because `],
+  [/∠/g, String.raw`\angle `],
+  [/⊥/g, String.raw`\perp `],
+  [/∥/g, String.raw`\parallel `],
+  [/≪/g, String.raw`\ll `],
+  [/≫/g, String.raw`\gg `],
+  [/α/g, String.raw`\alpha `],
+  [/β/g, String.raw`\beta `],
+  [/γ/g, String.raw`\gamma `],
+  [/δ/g, String.raw`\delta `],
+  [/ε/g, String.raw`\varepsilon `],
+  [/ζ/g, String.raw`\zeta `],
+  [/η/g, String.raw`\eta `],
+  [/θ/g, String.raw`\theta `],
+  [/ι/g, String.raw`\iota `],
+  [/κ/g, String.raw`\kappa `],
+  [/λ/g, String.raw`\lambda `],
+  [/μ/g, String.raw`\mu `],
+  [/ν/g, String.raw`\nu `],
+  [/ξ/g, String.raw`\xi `],
+  [/π/g, String.raw`\pi `],
+  [/ρ/g, String.raw`\rho `],
+  [/σ/g, String.raw`\sigma `],
+  [/τ/g, String.raw`\tau `],
+  [/φ/g, String.raw`\varphi `],
+  [/χ/g, String.raw`\chi `],
+  [/ψ/g, String.raw`\psi `],
+  [/ω/g, String.raw`\omega `],
+  [/Γ/g, String.raw`\Gamma `],
+  [/Δ/g, String.raw`\Delta `],
+  [/Θ/g, String.raw`\Theta `],
+  [/Λ/g, String.raw`\Lambda `],
+  [/Ξ/g, String.raw`\Xi `],
+  [/Π/g, String.raw`\Pi `],
+  [/Σ/g, String.raw`\Sigma `],
+  [/Φ/g, String.raw`\Phi `],
+  [/Ψ/g, String.raw`\Psi `],
+  [/Ω/g, String.raw`\Omega `]
 ];
 
 function normalizeFormulaForLatex(formula: string) {
@@ -900,12 +900,12 @@ ${plots}
 function buildPreamble() {
   return String.raw`\documentclass[14pt]{extarticle}
 
-% ===== Р СѓСЃСЃРєРёР№ СЏР·С‹Рє Рё С€СЂРёС„С‚С‹ (pdfLaTeX) =====
+% ===== Русский язык и шрифты (pdfLaTeX) =====
 \usepackage[T2A]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[russian]{babel}
-\addto\captionsrussian{\renewcommand{\contentsname}{РћРіР»Р°РІР»РµРЅРёРµ}}
-\usepackage{mathptmx} % С€СЂРёС„С‚ РІ СЃС‚РёР»Рµ Times
+\addto\captionsrussian{\renewcommand{\contentsname}{Оглавление}}
+\usepackage{mathptmx} % шрифт в стиле Times
 \usepackage{caption}
 \usepackage{xcolor}
 
@@ -923,13 +923,13 @@ function buildPreamble() {
 \usepackage{float}
 
 \captionsetup[figure]{
-    name={Р РёСЃСѓРЅРѕРє},
+    name={Рисунок},
     labelsep={space},
     justification=centering,
     singlelinecheck=false
 }
 
-% ===== РџРѕР»СЏ, РёРЅС‚РµСЂРІР°Р»С‹, Р°Р±Р·Р°С†С‹ =====
+% ===== Поля, интервалы, абзацы =====
 \usepackage{geometry}
 \geometry{
   a4paper,
@@ -945,16 +945,16 @@ function buildPreamble() {
 \usepackage{indentfirst}
 \setlength{\parindent}{1.25cm}
 
-% ===== РљР°СЂС‚РёРЅРєРё =====
+% ===== Картинки =====
 \usepackage{tikz}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \usepackage{graphicx}
-\graphicspath{{images/}} % РїР°РїРєР° РґР»СЏ СЃРєСЂРёРЅРѕРІ
+\graphicspath{{images/}} % папка для скринов
 
 \usepackage{caption}
 
-% ===== РћРіР»Р°РІР»РµРЅРёРµ =====
+% ===== Оглавление =====
 \usepackage{tocloft}
 \renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
 \renewcommand{\cftsecfont}{\normalsize}
@@ -969,7 +969,7 @@ function buildPreamble() {
 \setlength{\cftbeforesubsecskip}{2pt}
 \setlength{\cftbeforesubsubsecskip}{1pt}
 
-% ===== РњР°С‚РµРјР°С‚РёРєР°, РєРѕРґ Рё СЂР°СЃС‡С‘С‚С‹ =====
+% ===== Математика, код и расчёты =====
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsfonts}
@@ -991,7 +991,7 @@ function buildPreamble() {
   formatcom=\color{black}
 }
 
-% ===== РќР°СЃС‚СЂРѕР№РєР° СЂР°Р·РјРµСЂРѕРІ Р·Р°РіРѕР»РѕРІРєРѕРІ =====
+% ===== Настройка размеров заголовков =====
 \usepackage{titlesec}
 
 \titleformat{\section}
@@ -1026,14 +1026,14 @@ function buildTitlePage(meta: ReportMeta) {
 \begin{titlepage}
 \thispagestyle{empty}
 \begin{center}
-РњРёРЅРёСЃС‚РµСЂСЃС‚РІРѕ С‚СЂР°РЅСЃРїРѕСЂС‚Р° Р РѕСЃСЃРёР№СЃРєРѕР№ Р¤РµРґРµСЂР°С†РёРё\\
-Р¤РµРґРµСЂР°Р»СЊРЅРѕРµ Р°РіРµРЅС‚СЃС‚РІРѕ Р¶РµР»РµР·РЅРѕРґРѕСЂРѕР¶РЅРѕРіРѕ С‚СЂР°РЅСЃРїРѕСЂС‚Р°\\[0.2em]
+Министерство транспорта Российской Федерации\\
+Федеральное агентство железнодорожного транспорта\\[0.2em]
 
-Р¤РµРґРµСЂР°Р»СЊРЅРѕРµ РіРѕСЃСѓРґР°СЂСЃС‚РІРµРЅРЅРѕРµ Р±СЋРґР¶РµС‚РЅРѕРµ РѕР±СЂР°Р·РѕРІР°С‚РµР»СЊРЅРѕРµ СѓС‡СЂРµР¶РґРµРЅРёРµ\\
-РІС‹СЃС€РµРіРѕ РѕР±СЂР°Р·РѕРІР°РЅРёСЏ\\
-В«Р”Р°Р»СЊРЅРµРІРѕСЃС‚РѕС‡РЅС‹Р№ РіРѕСЃСѓРґР°СЂСЃС‚РІРµРЅРЅС‹Р№ СѓРЅРёРІРµСЂСЃРёС‚РµС‚ РїСѓС‚РµР№ СЃРѕРѕР±С‰РµРЅРёСЏВ»\\[0.2em]
+Федеральное государственное бюджетное образовательное учреждение\\
+высшего образования\\
+«Дальневосточный государственный университет путей сообщения»\\[0.2em]
 
-РљР°С„РµРґСЂР° В«${latexEscape(meta.kafedra)}В»
+Кафедра «${latexEscape(meta.kafedra)}»
 \vfill
 
 {\bfseries
@@ -1041,7 +1041,7 @@ function buildTitlePage(meta: ReportMeta) {
 \large ${latexEscape(meta.vidRaboty)}
 }\\[0.3em]
 
-\large РґРёСЃС†РёРїР»РёРЅР° В«${latexEscape(meta.disciplina)}В»\\
+\large дисциплина «${latexEscape(meta.disciplina)}»\\
 \Large ${latexEscape(meta.shapkaStroka)}
 \large
 \vfill
@@ -1058,7 +1058,7 @@ function buildTitlePage(meta: ReportMeta) {
 \end{center}
 
 \vspace{-25pt}
-\small\textit{(РїРѕРґРїРёСЃСЊ, РґР°С‚Р°)}
+\small\textit{(подпись, дата)}
 \large
 
 \begin{center}
@@ -1073,7 +1073,7 @@ function buildTitlePage(meta: ReportMeta) {
 \end{center}
 
 \vspace{-20pt}
-\small\textit{(РїРѕРґРїРёСЃСЊ, РґР°С‚Р°)}
+\small\textit{(подпись, дата)}
 \normalsize
 
 \vfill
@@ -1128,7 +1128,7 @@ function buildBlocks(
       const currentCodeIndex = counters.code++;
       const normalizedCode = normalizeCodeForLatex(block.code);
       out += String.raw`
-\noindent\textbf{РљРѕРґ ${currentCodeIndex} - ${latexEscape(block.caption)}}\par
+\noindent\textbf{Код ${currentCodeIndex} - ${latexEscape(block.caption)}}\par
 \smallskip
 \begin{CodeBlock}
 ` + normalizedCode + String.raw`
@@ -1142,7 +1142,7 @@ function buildBlocks(
       const currentCalculationIndex = counters.calculation++;
       const normalizedFormula = normalizeFormulaForLatex(block.formula);
       out += String.raw`
-\noindent\textbf{Р Р°СЃС‡С‘С‚ ${currentCalculationIndex} - ${latexEscape(block.caption)}}\par
+\noindent\textbf{Расчёт ${currentCalculationIndex} - ${latexEscape(block.caption)}}\par
 \smallskip
 \begin{${block.environment}}
 ` + normalizedFormula + String.raw`
@@ -1174,7 +1174,7 @@ function buildBlocks(
 
       out += String.raw`
 \begin{table}[H]
-\caption*{\hfill \textbf{РўР°Р±Р»РёС†Р° ${currentTableIndex} - ${latexEscape(block.caption)}}}
+\caption*{\hfill \textbf{Таблица ${currentTableIndex} - ${latexEscape(block.caption)}}}
 \centering
 \begin{tabular}{${colSpec}}
 \hline
@@ -1230,7 +1230,7 @@ function buildBlocks(
 }
 
 function buildBody(sections: ReportSection[]) {
-  let out = "\n% ================== РћРЎРќРћР’РќРђРЇ Р§РђРЎРўР¬ ==================\n\n";
+  let out = "\n% ================== ОСНОВНАЯ ЧАСТЬ ==================\n\n";
   const counters = {
     code: 1,
     calculation: 1,
@@ -1305,14 +1305,14 @@ function normalizeBlock(block: ReportBlock): ReportBlock {
     legacyBlock.series && legacyBlock.series.length > 0
       ? legacyBlock.series.map((item, index) => ({
           id: item.id || makeId("series"),
-          label: item.label || `РЎРµСЂРёСЏ ${index + 1}`,
+          label: item.label || `Серия ${index + 1}`,
           color: item.color || "teal",
           points: item.points || ""
         }))
       : [
           {
             id: makeId("series"),
-            label: "РЎРµСЂРёСЏ 1",
+            label: "Серия 1",
             color: legacyBlock.color || "teal",
             points: legacyBlock.points || ""
           }
