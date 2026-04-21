@@ -29,6 +29,8 @@ import {
 const storageKey = "tex-report-forge-draft";
 const projectFileApp = "tex-report-forge";
 const projectFileVersion = 1;
+const projectFileKind = "project";
+const capabilitiesFileKind = "capabilities";
 
 const blockLabels: Record<ReportBlock["type"], string> = {
   text: "Текст",
@@ -515,6 +517,7 @@ export default function Home() {
   function downloadCapabilitiesJson() {
     const payload = {
       app: "MakeTexChigga",
+      kind: capabilitiesFileKind,
       version: 2,
       generatedAt: new Date().toISOString(),
       purpose: "Редактор отчетов с генерацией LaTeX и локальной сборкой PDF.",
@@ -594,7 +597,7 @@ export default function Home() {
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = "make-tex-chigga-capabilities.json";
+    link.download = "make-tex-chigga-capabilities.instructions.json";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -604,6 +607,7 @@ export default function Home() {
   function downloadDraftProject() {
     const payload = {
       app: projectFileApp,
+      kind: projectFileKind,
       version: projectFileVersion,
       savedAt: new Date().toISOString(),
       draft
@@ -633,6 +637,15 @@ export default function Home() {
     try {
       const text = await file.text();
       const parsed = JSON.parse(text) as unknown;
+
+      if (isCapabilitiesExportFile(parsed)) {
+        setProjectStatus("error");
+        window.alert(
+          "Это не файл проекта, а описание возможностей приложения для нейронки. Его не нужно загружать в редактор. Для загрузки используйте файл из кнопки «Сохранить проект»."
+        );
+        return;
+      }
+
       const importedDraft = extractDraftFromProjectFile(parsed);
 
       if (!importedDraft) {
@@ -685,7 +698,7 @@ export default function Home() {
             {projectStatus === "saved" ? "Проект сохранён" : "Сохранить проект"}
           </button>
           <button className="button ghost" type="button" onClick={downloadCapabilitiesJson}>
-            Скачать capabilities.json
+            Описание для нейронки
           </button>
           <button className="button ghost" type="button" onClick={() => projectInputRef.current?.click()}>
             {projectStatus === "loaded"
@@ -1120,6 +1133,23 @@ function extractDraftFromProjectFile(value: unknown): ReportDraft | null {
   }
 
   return null;
+}
+
+function isCapabilitiesExportFile(value: unknown) {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  if (value.kind === capabilitiesFileKind) {
+    return true;
+  }
+
+  return (
+    value.app === "MakeTexChigga" &&
+    isRecord(value.features) &&
+    Array.isArray(value.blockTypes) &&
+    isRecord(value.neuralInstructions)
+  );
 }
 
 function isReportDraft(value: unknown): value is ReportDraft {
