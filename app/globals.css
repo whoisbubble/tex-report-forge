@@ -635,6 +635,16 @@ textarea:focus {
   background: var(--code);
 }
 
+.calculation-textarea {
+  min-height: 260px;
+}
+
+.formula-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .inline-note {
   grid-column: 1 / -1;
   margin-bottom: 0;

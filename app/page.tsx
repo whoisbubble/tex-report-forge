@@ -35,14 +35,14 @@ const projectFileKind = "project";
 const capabilitiesFileKind = "project-capabilities";
 
 const blockLabels: Record<ReportBlock["type"], string> = {
-  text: "Текст",
-  figure: "Рисунок",
-  code: "Код",
-  calculation: "Расчёты",
-  table: "Таблица",
-  graph: "График",
-  list: "Список",
-  pagebreak: "Разрыв страницы"
+  text: "РўРµРєСЃС‚",
+  figure: "Р РёСЃСѓРЅРѕРє",
+  code: "РљРѕРґ",
+  calculation: "Р Р°СЃС‡С‘С‚С‹",
+  table: "РўР°Р±Р»РёС†Р°",
+  graph: "Р“СЂР°С„РёРє",
+  list: "РЎРїРёСЃРѕРє",
+  pagebreak: "Р Р°Р·СЂС‹РІ СЃС‚СЂР°РЅРёС†С‹"
 };
 
 const levelLabels: Record<SectionLevel, string> = {
@@ -57,18 +57,18 @@ const metaFields: Array<{
   type?: "text" | "number";
   wide?: boolean;
 }> = [
-  { key: "kafedra", label: "Кафедра", wide: true },
-  { key: "tema", label: "Тема работы", wide: true },
-  { key: "vidRaboty", label: "Вид работы" },
-  { key: "disciplina", label: "Дисциплина", wide: true },
-  { key: "shapkaStroka", label: "Шифр / группа / вариант" },
-  { key: "studentLabel", label: "Подпись студента" },
-  { key: "rukovoditelLabel", label: "Подпись руководителя" },
-  { key: "rukovoditelDolzhnost", label: "Должность руководителя" },
-  { key: "student", label: "Студент" },
-  { key: "rukovoditel", label: "Руководитель" },
-  { key: "city", label: "Город" },
-  { key: "year", label: "Год", type: "number" }
+  { key: "kafedra", label: "РљР°С„РµРґСЂР°", wide: true },
+  { key: "tema", label: "РўРµРјР° СЂР°Р±РѕС‚С‹", wide: true },
+  { key: "vidRaboty", label: "Р’РёРґ СЂР°Р±РѕС‚С‹" },
+  { key: "disciplina", label: "Р”РёСЃС†РёРїР»РёРЅР°", wide: true },
+  { key: "shapkaStroka", label: "РЁРёС„СЂ / РіСЂСѓРїРїР° / РІР°СЂРёР°РЅС‚" },
+  { key: "studentLabel", label: "РџРѕРґРїРёСЃСЊ СЃС‚СѓРґРµРЅС‚Р°" },
+  { key: "rukovoditelLabel", label: "РџРѕРґРїРёСЃСЊ СЂСѓРєРѕРІРѕРґРёС‚РµР»СЏ" },
+  { key: "rukovoditelDolzhnost", label: "Р”РѕР»Р¶РЅРѕСЃС‚СЊ СЂСѓРєРѕРІРѕРґРёС‚РµР»СЏ" },
+  { key: "student", label: "РЎС‚СѓРґРµРЅС‚" },
+  { key: "rukovoditel", label: "Р СѓРєРѕРІРѕРґРёС‚РµР»СЊ" },
+  { key: "city", label: "Р“РѕСЂРѕРґ" },
+  { key: "year", label: "Р“РѕРґ", type: "number" }
 ];
 
 const graphPreviewColors: Record<string, string> = {
@@ -79,6 +79,42 @@ const graphPreviewColors: Record<string, string> = {
   "green!60!black": "#8ad06f",
   violet: "#c18cff"
 };
+
+const calculationEnvironmentLabels: Record<CalculationBlock["environment"], string> = {
+  "equation*": "Р¤РѕСЂРјСѓР»Р° Р±РµР· РЅРѕРјРµСЂР°",
+  equation: "Р¤РѕСЂРјСѓР»Р° СЃ РЅРѕРјРµСЂРѕРј",
+  "align*": "РќРµСЃРєРѕР»СЊРєРѕ СЃС‚СЂРѕРє Р±РµР· РЅРѕРјРµСЂРѕРІ",
+  align: "РќРµСЃРєРѕР»СЊРєРѕ СЃС‚СЂРѕРє СЃ РЅРѕРјРµСЂР°РјРё",
+  "gather*": "РЎС‚СЂРѕРєРё РїРѕ С†РµРЅС‚СЂСѓ Р±РµР· РЅРѕРјРµСЂРѕРІ",
+  gather: "РЎС‚СЂРѕРєРё РїРѕ С†РµРЅС‚СЂСѓ СЃ РЅРѕРјРµСЂР°РјРё"
+};
+
+const calculationInsertTemplates = [
+  { label: "frac", template: String.raw`\frac{__CURSOR__}{}` },
+  { label: "sqrt", template: String.raw`\sqrt{__CURSOR__}` },
+  { label: "^{}", template: String.raw`x^{__CURSOR__}` },
+  { label: "_{}", template: String.raw`x_{__CURSOR__}` },
+  { label: "sum", template: String.raw`\sum_{i=1}^{n} __CURSOR__` },
+  { label: "int", template: String.raw`\int_{a}^{b} __CURSOR__ \, dx` },
+  { label: "lim", template: String.raw`\lim_{x \to \infty} __CURSOR__` },
+  { label: "alpha", template: String.raw`\alpha` },
+  { label: "beta", template: String.raw`\beta` },
+  { label: "pi", template: String.raw`\pi` },
+  { label: "cap", template: String.raw`\cap` },
+  { label: "cup", template: String.raw`\cup` },
+  { label: "subseteq", template: String.raw`\subseteq` },
+  { label: "in", template: String.raw`\in` },
+  { label: "leq", template: String.raw`\leq` },
+  { label: "geq", template: String.raw`\geq` },
+  { label: "neq", template: String.raw`\neq` },
+  { label: "pm", template: String.raw`\pm` },
+  { label: "pmatrix", template: String.raw`\begin{pmatrix}
+__CURSOR__
+\end{pmatrix}` },
+  { label: "cases", template: String.raw`\begin{cases}
+__CURSOR__
+\end{cases}` }
+];
 
 export default function Home() {
   const [draft, setDraft] = useState<ReportDraft>(() => createInitialDraft());
@@ -430,7 +466,7 @@ export default function Home() {
           ...block.series,
           {
             id: makeId("series"),
-            label: `Серия ${block.series.length + 1}`,
+            label: `РЎРµСЂРёСЏ ${block.series.length + 1}`,
             color: "teal",
             points: "1;10\n2;15\n3;12"
           }
@@ -493,7 +529,7 @@ export default function Home() {
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { error?: string; details?: string } | null;
-        throw new Error(payload?.details || payload?.error || "Компиляция PDF не удалась");
+        throw new Error(payload?.details || payload?.error || "РљРѕРјРїРёР»СЏС†РёСЏ PDF РЅРµ СѓРґР°Р»Р°СЃСЊ");
       }
 
       const blob = await response.blob();
@@ -512,7 +548,7 @@ export default function Home() {
       const message =
         error instanceof Error
           ? error.message
-          : "Не получилось собрать PDF. Установите pdflatex, например MiKTeX или TeX Live.";
+          : "РќРµ РїРѕР»СѓС‡РёР»РѕСЃСЊ СЃРѕР±СЂР°С‚СЊ PDF. РЈСЃС‚Р°РЅРѕРІРёС‚Рµ pdflatex, РЅР°РїСЂРёРјРµСЂ MiKTeX РёР»Рё TeX Live.";
       window.alert(message);
     }
   }
@@ -525,7 +561,7 @@ export default function Home() {
       version: 2,
       draft: capabilitiesDraft,
       generatedAt: new Date().toISOString(),
-      purpose: "Редактор отчетов с генерацией LaTeX и локальной сборкой PDF.",
+      purpose: "Р РµРґР°РєС‚РѕСЂ РѕС‚С‡РµС‚РѕРІ СЃ РіРµРЅРµСЂР°С†РёРµР№ LaTeX Рё Р»РѕРєР°Р»СЊРЅРѕР№ СЃР±РѕСЂРєРѕР№ PDF.",
       formats: {
         editable_project: "json",
         latex_export: "tex",
@@ -550,11 +586,11 @@ export default function Home() {
       blockTypes: [
         {
           type: "text",
-          purpose: "Обычный текст отчета"
+          purpose: "РћР±С‹С‡РЅС‹Р№ С‚РµРєСЃС‚ РѕС‚С‡РµС‚Р°"
         },
         {
           type: "figure",
-          purpose: "Внешняя картинка из images/",
+          purpose: "Р’РЅРµС€РЅСЏСЏ РєР°СЂС‚РёРЅРєР° РёР· images/",
           fields: ["filename", "caption"]
         },
           {
@@ -566,38 +602,39 @@ export default function Home() {
           {
             type: "calculation",
             displayName: "Расчёты",
-            purpose: "Блок расчётов с безопасным verbatim-выводом",
-            fields: ["caption", "code"]
+            purpose: "Блок формул и математических вычислений",
+            fields: ["caption", "environment", "formula"],
+            environmentOptions: ["equation*", "equation", "align*", "align", "gather*", "gather"]
           },
         {
           type: "table",
-          purpose: "Таблица из строк и ячеек, разделенных ;",
+          purpose: "РўР°Р±Р»РёС†Р° РёР· СЃС‚СЂРѕРє Рё СЏС‡РµРµРє, СЂР°Р·РґРµР»РµРЅРЅС‹С… ;",
           fields: ["caption", "cols", "data"]
         },
         {
           type: "graph",
-          purpose: "График через TikZ/PGFPlots",
+          purpose: "Р“СЂР°С„РёРє С‡РµСЂРµР· TikZ/PGFPlots",
           fields: ["caption", "title", "xLabel", "yLabel", "mode", "startAtZero", "series"],
           seriesFields: ["label", "color", "points"],
           preview: "inline SVG preview with axes and legend"
         },
         {
           type: "list",
-          purpose: "Маркированный или нумерованный список",
+          purpose: "РњР°СЂРєРёСЂРѕРІР°РЅРЅС‹Р№ РёР»Рё РЅСѓРјРµСЂРѕРІР°РЅРЅС‹Р№ СЃРїРёСЃРѕРє",
           fields: ["ordered", "items"]
         },
         {
           type: "pagebreak",
-          purpose: "Разрыв страницы"
+          purpose: "Р Р°Р·СЂС‹РІ СЃС‚СЂР°РЅРёС†С‹"
         }
       ],
       neuralInstructions: {
         summary:
-          "Если этот JSON отправляется в нейросеть, она должна понимать структуру приложения и помогать заполнять разделы, блоки, графики и титульный лист без нарушения схемы.",
+          "Р•СЃР»Рё СЌС‚РѕС‚ JSON РѕС‚РїСЂР°РІР»СЏРµС‚СЃСЏ РІ РЅРµР№СЂРѕСЃРµС‚СЊ, РѕРЅР° РґРѕР»Р¶РЅР° РїРѕРЅРёРјР°С‚СЊ СЃС‚СЂСѓРєС‚СѓСЂСѓ РїСЂРёР»РѕР¶РµРЅРёСЏ Рё РїРѕРјРѕРіР°С‚СЊ Р·Р°РїРѕР»РЅСЏС‚СЊ СЂР°Р·РґРµР»С‹, Р±Р»РѕРєРё, РіСЂР°С„РёРєРё Рё С‚РёС‚СѓР»СЊРЅС‹Р№ Р»РёСЃС‚ Р±РµР· РЅР°СЂСѓС€РµРЅРёСЏ СЃС…РµРјС‹.",
         recommendedWorkflow: [
-          "Сначала определить структуру разделов",
-          "Потом наполнить блоки текстом, кодом, расчётами, таблицами и графиками",
-          "После этого сгенерировать TEX или PDF"
+          "РЎРЅР°С‡Р°Р»Р° РѕРїСЂРµРґРµР»РёС‚СЊ СЃС‚СЂСѓРєС‚СѓСЂСѓ СЂР°Р·РґРµР»РѕРІ",
+          "РџРѕС‚РѕРј РЅР°РїРѕР»РЅРёС‚СЊ Р±Р»РѕРєРё С‚РµРєСЃС‚РѕРј, РєРѕРґРѕРј, СЂР°СЃС‡С‘С‚Р°РјРё, С‚Р°Р±Р»РёС†Р°РјРё Рё РіСЂР°С„РёРєР°РјРё",
+          "РџРѕСЃР»Рµ СЌС‚РѕРіРѕ СЃРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ TEX РёР»Рё PDF"
         ]
       }
     };
@@ -654,7 +691,7 @@ export default function Home() {
       if (!importedDraft && isCapabilitiesExportFile(parsed)) {
         setProjectStatus("error");
         window.alert(
-          "Это не файл проекта, а описание возможностей приложения для нейронки. Его не нужно загружать в редактор. Для загрузки используйте файл из кнопки «Сохранить проект»."
+          "Р­С‚Рѕ РЅРµ С„Р°Р№Р» РїСЂРѕРµРєС‚Р°, Р° РѕРїРёСЃР°РЅРёРµ РІРѕР·РјРѕР¶РЅРѕСЃС‚РµР№ РїСЂРёР»РѕР¶РµРЅРёСЏ РґР»СЏ РЅРµР№СЂРѕРЅРєРё. Р•РіРѕ РЅРµ РЅСѓР¶РЅРѕ Р·Р°РіСЂСѓР¶Р°С‚СЊ РІ СЂРµРґР°РєС‚РѕСЂ. Р”Р»СЏ Р·Р°РіСЂСѓР·РєРё РёСЃРїРѕР»СЊР·СѓР№С‚Рµ С„Р°Р№Р» РёР· РєРЅРѕРїРєРё В«РЎРѕС…СЂР°РЅРёС‚СЊ РїСЂРѕРµРєС‚В»."
         );
         return;
       }
@@ -663,7 +700,7 @@ export default function Home() {
         throw new Error("Invalid project file");
       }
 
-      if (!window.confirm("Загрузить проект из файла? Текущий черновик будет заменён.")) return;
+      if (!window.confirm("Р—Р°РіСЂСѓР·РёС‚СЊ РїСЂРѕРµРєС‚ РёР· С„Р°Р№Р»Р°? РўРµРєСѓС‰РёР№ С‡РµСЂРЅРѕРІРёРє Р±СѓРґРµС‚ Р·Р°РјРµРЅС‘РЅ.")) return;
 
       const normalizedDraft = normalizeDraft(importedDraft);
       setDraft(normalizedDraft);
@@ -673,12 +710,12 @@ export default function Home() {
       setProjectStatus("loaded");
     } catch {
       setProjectStatus("error");
-      window.alert("Не получилось загрузить проект. Проверьте, что выбран JSON-файл этого редактора.");
+      window.alert("РќРµ РїРѕР»СѓС‡РёР»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РїСЂРѕРµРєС‚. РџСЂРѕРІРµСЂСЊС‚Рµ, С‡С‚Рѕ РІС‹Р±СЂР°РЅ JSON-С„Р°Р№Р» СЌС‚РѕРіРѕ СЂРµРґР°РєС‚РѕСЂР°.");
     }
   }
 
   function loadExample() {
-    if (!window.confirm("Загрузить пример? Текущий черновик будет заменён.")) return;
+    if (!window.confirm("Р—Р°РіСЂСѓР·РёС‚СЊ РїСЂРёРјРµСЂ? РўРµРєСѓС‰РёР№ С‡РµСЂРЅРѕРІРёРє Р±СѓРґРµС‚ Р·Р°РјРµРЅС‘РЅ.")) return;
     const exampleDraft = createExampleDraft();
     setDraft(exampleDraft);
     setCurrentLevel(0);
@@ -686,7 +723,7 @@ export default function Home() {
   }
 
   function clearDraft() {
-    if (!window.confirm("Очистить весь черновик?")) return;
+    if (!window.confirm("РћС‡РёСЃС‚РёС‚СЊ РІРµСЃСЊ С‡РµСЂРЅРѕРІРёРє?")) return;
     const initialDraft = createInitialDraft();
     setDraft(initialDraft);
     setCurrentLevel(0);
@@ -699,24 +736,24 @@ export default function Home() {
         <div>
           <p className="eyebrow">LaTeX report forge</p>
           <h1>MakeTexChigga</h1>
-          <p className="subtitle">Большой редактор отчёта без тесного окошка и ручной сборки шаблона.</p>
+          <p className="subtitle">Р‘РѕР»СЊС€РѕР№ СЂРµРґР°РєС‚РѕСЂ РѕС‚С‡С‘С‚Р° Р±РµР· С‚РµСЃРЅРѕРіРѕ РѕРєРѕС€РєР° Рё СЂСѓС‡РЅРѕР№ СЃР±РѕСЂРєРё С€Р°Р±Р»РѕРЅР°.</p>
         </div>
         <div className="topbar-actions">
           <button className="button primary" type="button" onClick={generateTex}>
-            {generatedSnapshot ? "Обновить .tex" : "Сгенерировать .tex"}
+            {generatedSnapshot ? "РћР±РЅРѕРІРёС‚СЊ .tex" : "РЎРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ .tex"}
           </button>
           <button className="button ghost" type="button" onClick={downloadDraftProject}>
-            {projectStatus === "saved" ? "Проект сохранён" : "Сохранить проект"}
+            {projectStatus === "saved" ? "РџСЂРѕРµРєС‚ СЃРѕС…СЂР°РЅС‘РЅ" : "РЎРѕС…СЂР°РЅРёС‚СЊ РїСЂРѕРµРєС‚"}
           </button>
           <button className="button ghost" type="button" onClick={downloadCapabilitiesJson}>
-            Скачать capabilities.json
+            РЎРєР°С‡Р°С‚СЊ capabilities.json
           </button>
           <button className="button ghost" type="button" onClick={() => projectInputRef.current?.click()}>
             {projectStatus === "loaded"
-              ? "Проект загружен"
+              ? "РџСЂРѕРµРєС‚ Р·Р°РіСЂСѓР¶РµРЅ"
               : projectStatus === "error"
-                ? "Ошибка загрузки"
-                : "Загрузить проект"}
+                ? "РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё"
+                : "Р—Р°РіСЂСѓР·РёС‚СЊ РїСЂРѕРµРєС‚"}
           </button>
           <input
             ref={projectInputRef}
@@ -726,52 +763,52 @@ export default function Home() {
             onChange={uploadDraftProject}
           />
           <button className="button ghost" type="button" onClick={loadExample}>
-            Загрузить пример
+            Р—Р°РіСЂСѓР·РёС‚СЊ РїСЂРёРјРµСЂ
           </button>
           <button className="button ghost" type="button" onClick={copyTex}>
-            {copyStatus === "copied" ? "Скопировано" : copyStatus === "error" ? "Не скопировалось" : "Скопировать .tex"}
+            {copyStatus === "copied" ? "РЎРєРѕРїРёСЂРѕРІР°РЅРѕ" : copyStatus === "error" ? "РќРµ СЃРєРѕРїРёСЂРѕРІР°Р»РѕСЃСЊ" : "РЎРєРѕРїРёСЂРѕРІР°С‚СЊ .tex"}
           </button>
           <a className="button ghost" href="https://www.overleaf.com/project" rel="noreferrer" target="_blank">
-            Открыть Overleaf
+            РћС‚РєСЂС‹С‚СЊ Overleaf
           </a>
           <button className="button primary" type="button" onClick={buildPdf}>
             {pdfStatus === "building"
-              ? "Собираю PDF..."
+              ? "РЎРѕР±РёСЂР°СЋ PDF..."
               : pdfStatus === "done"
-                ? "PDF готов"
+                ? "PDF РіРѕС‚РѕРІ"
                 : pdfStatus === "error"
-                  ? "Ошибка PDF"
-                  : "Скачать PDF"}
+                  ? "РћС€РёР±РєР° PDF"
+                  : "РЎРєР°С‡Р°С‚СЊ PDF"}
           </button>
           <button className="button primary alt" type="button" onClick={downloadTex}>
-            Скачать .tex
+            РЎРєР°С‡Р°С‚СЊ .tex
           </button>
         </div>
       </header>
 
-      <section className="summary-band" aria-label="Сводка">
+      <section className="summary-band" aria-label="РЎРІРѕРґРєР°">
         <div>
           <span>{draft.sections.length}</span>
-          <p>разделов</p>
+          <p>СЂР°Р·РґРµР»РѕРІ</p>
         </div>
         <div>
           <span>{blockCount}</span>
-          <p>блоков</p>
+          <p>Р±Р»РѕРєРѕРІ</p>
         </div>
         <div>
           <span>{currentLevel}</span>
-          <p>текущий уровень</p>
+          <p>С‚РµРєСѓС‰РёР№ СѓСЂРѕРІРµРЅСЊ</p>
         </div>
         <div>
           <span>{tex.length.toLocaleString("ru-RU")}</span>
-          <p>символов .tex</p>
+          <p>СЃРёРјРІРѕР»РѕРІ .tex</p>
         </div>
       </section>
 
       <details className="meta-panel" open>
         <summary>
-          <span>Титульный лист</span>
-          <small>шапка, подписи, город, год</small>
+          <span>РўРёС‚СѓР»СЊРЅС‹Р№ Р»РёСЃС‚</span>
+          <small>С€Р°РїРєР°, РїРѕРґРїРёСЃРё, РіРѕСЂРѕРґ, РіРѕРґ</small>
         </summary>
         <div className="meta-grid">
           {metaFields.map((field) => (
@@ -790,36 +827,36 @@ export default function Home() {
               checked={draft.meta.includeToc}
               onChange={(event) => updateMeta("includeToc", event.target.checked)}
             />
-            <span>Добавить оглавление и строки `\addcontentsline` для разделов</span>
+            <span>Р”РѕР±Р°РІРёС‚СЊ РѕРіР»Р°РІР»РµРЅРёРµ Рё СЃС‚СЂРѕРєРё `\addcontentsline` РґР»СЏ СЂР°Р·РґРµР»РѕРІ</span>
           </label>
         </div>
       </details>
 
-      <section className="workspace" aria-label="Редактор отчёта">
+      <section className="workspace" aria-label="Р РµРґР°РєС‚РѕСЂ РѕС‚С‡С‘С‚Р°">
         <aside className="side-panel">
           <div className="side-panel-inner">
-            <h2>Разделы</h2>
+            <h2>Р Р°Р·РґРµР»С‹</h2>
             <p>
-              Выберите раздел, и новые разделы будут вставляться сразу после него. Сами блоки редактируются на всю
-              ширину страницы.
+              Р’С‹Р±РµСЂРёС‚Рµ СЂР°Р·РґРµР», Рё РЅРѕРІС‹Рµ СЂР°Р·РґРµР»С‹ Р±СѓРґСѓС‚ РІСЃС‚Р°РІР»СЏС‚СЊСЃСЏ СЃСЂР°Р·Сѓ РїРѕСЃР»Рµ РЅРµРіРѕ. РЎР°РјРё Р±Р»РѕРєРё СЂРµРґР°РєС‚РёСЂСѓСЋС‚СЃСЏ РЅР° РІСЃСЋ
+              С€РёСЂРёРЅСѓ СЃС‚СЂР°РЅРёС†С‹.
             </p>
 
             <label className="field search-field">
-              <span>Глобальный поиск</span>
+              <span>Р“Р»РѕР±Р°Р»СЊРЅС‹Р№ РїРѕРёСЃРє</span>
               <input
                 type="text"
-                placeholder="Заголовок, текст, код, расчёты, таблица, график..."
+                placeholder="Р—Р°РіРѕР»РѕРІРѕРє, С‚РµРєСЃС‚, РєРѕРґ, СЂР°СЃС‡С‘С‚С‹, С‚Р°Р±Р»РёС†Р°, РіСЂР°С„РёРє..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </label>
             <p className="search-hint">
               {searchQuery.trim()
-                ? `Найдено разделов: ${filteredSections.length} из ${draft.sections.length}`
-                : "Поиск идёт по заголовкам, тексту, коду, расчётам, таблицам, графикам и спискам."}
+                ? `РќР°Р№РґРµРЅРѕ СЂР°Р·РґРµР»РѕРІ: ${filteredSections.length} РёР· ${draft.sections.length}`
+                : "РџРѕРёСЃРє РёРґС‘С‚ РїРѕ Р·Р°РіРѕР»РѕРІРєР°Рј, С‚РµРєСЃС‚Сѓ, РєРѕРґСѓ, СЂР°СЃС‡С‘С‚Р°Рј, С‚Р°Р±Р»РёС†Р°Рј, РіСЂР°С„РёРєР°Рј Рё СЃРїРёСЃРєР°Рј."}
             </p>
 
-            <div className="level-picker" role="group" aria-label="Текущий уровень раздела">
+            <div className="level-picker" role="group" aria-label="РўРµРєСѓС‰РёР№ СѓСЂРѕРІРµРЅСЊ СЂР°Р·РґРµР»Р°">
               {([0, 1, 2] as SectionLevel[]).map((level) => (
                 <button
                   className={currentLevel === level ? "level active" : "level"}
@@ -835,30 +872,30 @@ export default function Home() {
 
             <div className="side-actions">
               <button className="button primary full" type="button" onClick={() => addSection()}>
-                {selectedSectionId ? "Добавить раздел после выбранного" : "Добавить раздел"}
+                {selectedSectionId ? "Р”РѕР±Р°РІРёС‚СЊ СЂР°Р·РґРµР» РїРѕСЃР»Рµ РІС‹Р±СЂР°РЅРЅРѕРіРѕ" : "Р”РѕР±Р°РІРёС‚СЊ СЂР°Р·РґРµР»"}
               </button>
               <button className="button ghost full" type="button" onClick={addLowerSection}>
-                {selectedSectionId ? "Добавить уровнем ниже после выбранного" : "Добавить уровнем ниже"}
+                {selectedSectionId ? "Р”РѕР±Р°РІРёС‚СЊ СѓСЂРѕРІРЅРµРј РЅРёР¶Рµ РїРѕСЃР»Рµ РІС‹Р±СЂР°РЅРЅРѕРіРѕ" : "Р”РѕР±Р°РІРёС‚СЊ СѓСЂРѕРІРЅРµРј РЅРёР¶Рµ"}
               </button>
               <button
                 className="button ghost full"
                 type="button"
                 onClick={() => setCurrentLevel((level) => Math.max(level - 1, 0) as SectionLevel)}
               >
-                Подняться уровнем выше
+                РџРѕРґРЅСЏС‚СЊСЃСЏ СѓСЂРѕРІРЅРµРј РІС‹С€Рµ
               </button>
               <button className="button ghost full" type="button" onClick={collapseAllSections}>
-                Свернуть все
+                РЎРІРµСЂРЅСѓС‚СЊ РІСЃРµ
               </button>
               <button className="button ghost full" type="button" onClick={expandAllSections}>
-                Развернуть все
+                Р Р°Р·РІРµСЂРЅСѓС‚СЊ РІСЃРµ
               </button>
               <button className="button danger full" type="button" onClick={clearDraft}>
-                Очистить черновик
+                РћС‡РёСЃС‚РёС‚СЊ С‡РµСЂРЅРѕРІРёРє
               </button>
             </div>
 
-            <nav className="section-jump" aria-label="Навигация по разделам">
+            <nav className="section-jump" aria-label="РќР°РІРёРіР°С†РёСЏ РїРѕ СЂР°Р·РґРµР»Р°Рј">
               {filteredSections.map((section, index) => (
                 <a
                   className={`jump level-${section.level} ${selectedSectionId === section.id ? "active" : ""}`}
@@ -866,7 +903,7 @@ export default function Home() {
                   key={section.id}
                   onClick={() => setSelectedSectionId(section.id)}
                 >
-                  {sectionDisplayInfo[section.id]?.fullTitle || section.title || `Раздел ${index + 1}`}
+                  {sectionDisplayInfo[section.id]?.fullTitle || section.title || `Р Р°Р·РґРµР» ${index + 1}`}
                 </a>
               ))}
             </nav>
@@ -876,13 +913,13 @@ export default function Home() {
         <div className="editor-flow">
           {draft.sections.length === 0 ? (
             <div className="empty-state">
-              <h2>Разделов пока нет</h2>
-              <p>Добавьте первый раздел, а потом наполняйте его текстом, кодом, расчётами, таблицами и рисунками.</p>
+              <h2>Р Р°Р·РґРµР»РѕРІ РїРѕРєР° РЅРµС‚</h2>
+              <p>Р”РѕР±Р°РІСЊС‚Рµ РїРµСЂРІС‹Р№ СЂР°Р·РґРµР», Р° РїРѕС‚РѕРј РЅР°РїРѕР»РЅСЏР№С‚Рµ РµРіРѕ С‚РµРєСЃС‚РѕРј, РєРѕРґРѕРј, СЂР°СЃС‡С‘С‚Р°РјРё, С‚Р°Р±Р»РёС†Р°РјРё Рё СЂРёСЃСѓРЅРєР°РјРё.</p>
             </div>
           ) : filteredSections.length === 0 ? (
             <div className="empty-state">
-              <h2>Ничего не найдено</h2>
-              <p>Попробуйте другой запрос. Поиск смотрит и в заголовки, и внутрь блоков.</p>
+              <h2>РќРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ</h2>
+              <p>РџРѕРїСЂРѕР±СѓР№С‚Рµ РґСЂСѓРіРѕР№ Р·Р°РїСЂРѕСЃ. РџРѕРёСЃРє СЃРјРѕС‚СЂРёС‚ Рё РІ Р·Р°РіРѕР»РѕРІРєРё, Рё РІРЅСѓС‚СЂСЊ Р±Р»РѕРєРѕРІ.</p>
             </div>
           ) : (
             filteredSections.map((section, sectionIndex) => {
@@ -898,14 +935,14 @@ export default function Home() {
                 <div className="section-head">
                   <div className="section-title-row">
                     <span className="section-number">
-                      {sectionDisplayInfo[section.id]?.numberingLabel || "∅"}
+                      {sectionDisplayInfo[section.id]?.numberingLabel || "в€…"}
                     </span>
                     <label className="field title-field">
                       <span>
-                        {section.level === 0 ? "Заголовок раздела" : "Подзаголовок"}
+                        {section.level === 0 ? "Р—Р°РіРѕР»РѕРІРѕРє СЂР°Р·РґРµР»Р°" : "РџРѕРґР·Р°РіРѕР»РѕРІРѕРє"}
                         {sectionDisplayInfo[section.id]?.numberingLabel
-                          ? ` · ${sectionDisplayInfo[section.id].numberingLabel}`
-                          : " · без номера"}
+                          ? ` В· ${sectionDisplayInfo[section.id].numberingLabel}`
+                          : " В· Р±РµР· РЅРѕРјРµСЂР°"}
                       </span>
                       <input
                         type="text"
@@ -914,7 +951,7 @@ export default function Home() {
                       />
                     </label>
                     <label className="field level-field">
-                      <span>Уровень</span>
+                      <span>РЈСЂРѕРІРµРЅСЊ</span>
                       <select
                         value={section.level}
                         onChange={(event) =>
@@ -932,7 +969,7 @@ export default function Home() {
                         checked={!section.isNumbered}
                         onChange={(event) => updateSection(section.id, { isNumbered: !event.target.checked })}
                       />
-                      <span>Убрать номер заголовка</span>
+                      <span>РЈР±СЂР°С‚СЊ РЅРѕРјРµСЂ Р·Р°РіРѕР»РѕРІРєР°</span>
                     </label>
                   </div>
 
@@ -945,7 +982,7 @@ export default function Home() {
                         insertSectionAfter(section.id, section.level);
                       }}
                     >
-                      + После
+                      + РџРѕСЃР»Рµ
                     </button>
                     <button
                       className="mini-button"
@@ -955,10 +992,10 @@ export default function Home() {
                         insertSectionAfter(section.id, Math.min(section.level + 1, 2) as SectionLevel);
                       }}
                     >
-                      + Ниже
+                      + РќРёР¶Рµ
                     </button>
                     <button className="mini-button" type="button" onClick={() => duplicateSection(section.id)}>
-                      Дубль
+                      Р”СѓР±Р»СЊ
                     </button>
                     <button
                       className="mini-button"
@@ -968,16 +1005,16 @@ export default function Home() {
                         toggleSectionCollapse(section.id);
                       }}
                     >
-                      {isCollapsed ? "Развернуть" : "Свернуть"}
+                      {isCollapsed ? "Р Р°Р·РІРµСЂРЅСѓС‚СЊ" : "РЎРІРµСЂРЅСѓС‚СЊ"}
                     </button>
                     <button className="mini-button" type="button" onClick={() => moveSection(section.id, -1)}>
-                      Вверх
+                      Р’РІРµСЂС…
                     </button>
                     <button className="mini-button" type="button" onClick={() => moveSection(section.id, 1)}>
-                      Вниз
+                      Р’РЅРёР·
                     </button>
                     <button className="mini-button danger-text" type="button" onClick={() => removeSection(section.id)}>
-                      Удалить
+                      РЈРґР°Р»РёС‚СЊ
                     </button>
                   </div>
                 </div>
@@ -993,13 +1030,13 @@ export default function Home() {
 
                 {isCollapsed ? (
                   <div className="section-collapsed-summary">
-                    <span>{section.blocks.length} блоков</span>
-                    <span>{section.level === 0 ? "Раздел" : section.level === 1 ? "Подраздел" : "Подпункт"}</span>
+                    <span>{section.blocks.length} Р±Р»РѕРєРѕРІ</span>
+                    <span>{section.level === 0 ? "Р Р°Р·РґРµР»" : section.level === 1 ? "РџРѕРґСЂР°Р·РґРµР»" : "РџРѕРґРїСѓРЅРєС‚"}</span>
                   </div>
                 ) : (
                 <div className="blocks">
                   {section.blocks.length === 0 ? (
-                    <p className="block-empty">В разделе ещё нет блоков. Добавьте текст, рисунок, код, расчёты или таблицу.</p>
+                    <p className="block-empty">Р’ СЂР°Р·РґРµР»Рµ РµС‰С‘ РЅРµС‚ Р±Р»РѕРєРѕРІ. Р”РѕР±Р°РІСЊС‚Рµ С‚РµРєСЃС‚, СЂРёСЃСѓРЅРѕРє, РєРѕРґ, СЂР°СЃС‡С‘С‚С‹ РёР»Рё С‚Р°Р±Р»РёС†Сѓ.</p>
                   ) : (
                     section.blocks.map((block, blockIndex) => (
                       <BlockEditor
@@ -1029,37 +1066,37 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="tex-panel" aria-label="LaTeX результат">
+      <section className="tex-panel" aria-label="LaTeX СЂРµР·СѓР»СЊС‚Р°С‚">
         <div className="tex-head">
           <div>
-            <h2>.tex результат</h2>
+            <h2>.tex СЂРµР·СѓР»СЊС‚Р°С‚</h2>
             <p>
-              Полный файл обновляется автоматически. Нажмите генерацию, скопируйте `.tex` и откройте{" "}
+              РџРѕР»РЅС‹Р№ С„Р°Р№Р» РѕР±РЅРѕРІР»СЏРµС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё. РќР°Р¶РјРёС‚Рµ РіРµРЅРµСЂР°С†РёСЋ, СЃРєРѕРїРёСЂСѓР№С‚Рµ `.tex` Рё РѕС‚РєСЂРѕР№С‚Рµ{" "}
               <a href="https://www.overleaf.com/project" rel="noreferrer" target="_blank">
                 Overleaf
               </a>
-              , чтобы вставить его в новый проект.
+              , С‡С‚РѕР±С‹ РІСЃС‚Р°РІРёС‚СЊ РµРіРѕ РІ РЅРѕРІС‹Р№ РїСЂРѕРµРєС‚.
             </p>
             <span className={isTexDirty ? "tex-state dirty" : "tex-state"}>
               {generatedSnapshot
                 ? isTexDirty
-                  ? "После последней генерации есть изменения"
-                  : "Текущая версия .tex сгенерирована"
-                : "Файл ещё не генерировали в этой сессии"}
+                  ? "РџРѕСЃР»Рµ РїРѕСЃР»РµРґРЅРµР№ РіРµРЅРµСЂР°С†РёРё РµСЃС‚СЊ РёР·РјРµРЅРµРЅРёСЏ"
+                  : "РўРµРєСѓС‰Р°СЏ РІРµСЂСЃРёСЏ .tex СЃРіРµРЅРµСЂРёСЂРѕРІР°РЅР°"
+                : "Р¤Р°Р№Р» РµС‰С‘ РЅРµ РіРµРЅРµСЂРёСЂРѕРІР°Р»Рё РІ СЌС‚РѕР№ СЃРµСЃСЃРёРё"}
             </span>
           </div>
           <div className="tex-actions">
             <button className="button primary" type="button" onClick={generateTex}>
-              {generatedSnapshot ? "Обновить .tex" : "Сгенерировать .tex"}
+              {generatedSnapshot ? "РћР±РЅРѕРІРёС‚СЊ .tex" : "РЎРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ .tex"}
             </button>
             <button className="button ghost" type="button" onClick={copyTex}>
-              {copyStatus === "copied" ? "Скопировано" : copyStatus === "error" ? "Не скопировалось" : "Скопировать"}
+              {copyStatus === "copied" ? "РЎРєРѕРїРёСЂРѕРІР°РЅРѕ" : copyStatus === "error" ? "РќРµ СЃРєРѕРїРёСЂРѕРІР°Р»РѕСЃСЊ" : "РЎРєРѕРїРёСЂРѕРІР°С‚СЊ"}
             </button>
             <a className="button ghost" href="https://www.overleaf.com/project" rel="noreferrer" target="_blank">
               Overleaf
             </a>
             <button className="button primary alt" type="button" onClick={downloadTex}>
-              Скачать
+              РЎРєР°С‡Р°С‚СЊ
             </button>
           </div>
         </div>
@@ -1084,7 +1121,7 @@ function getBlockSearchText(block: ReportBlock) {
     case "code":
       return `${block.caption} ${block.code}`;
     case "calculation":
-      return `${block.caption} ${block.code}`;
+      return `${block.caption} ${block.environment} ${block.formula}`;
     case "table":
       return `${block.caption} ${block.cols} ${block.data}`;
     case "graph":
@@ -1203,7 +1240,7 @@ function GraphPreview({ block }: { block: GraphBlock }) {
     .filter((series) => series.points.length > 0);
 
   if (parsedSeries.length === 0) {
-    return <div className="graph-preview-empty">Добавьте хотя бы одну корректную точку в формате `X;Y`.</div>;
+    return <div className="graph-preview-empty">Р”РѕР±Р°РІСЊС‚Рµ С…РѕС‚СЏ Р±С‹ РѕРґРЅСѓ РєРѕСЂСЂРµРєС‚РЅСѓСЋ С‚РѕС‡РєСѓ РІ С„РѕСЂРјР°С‚Рµ `X;Y`.</div>;
   }
 
   const allPoints = parsedSeries.flatMap((series) => series.points);
@@ -1280,14 +1317,14 @@ function GraphPreview({ block }: { block: GraphBlock }) {
   return (
     <div className="graph-preview">
       <div className="graph-preview-meta">
-        <strong>Предпросмотр графика</strong>
+        <strong>РџСЂРµРґРїСЂРѕСЃРјРѕС‚СЂ РіСЂР°С„РёРєР°</strong>
         <span>
-          Серий: {orderedSeries.length} · Точек: {allPoints.length}
+          РЎРµСЂРёР№: {orderedSeries.length} В· РўРѕС‡РµРє: {allPoints.length}
         </span>
       </div>
 
       <div className="graph-preview-frame">
-        <svg aria-label="Предпросмотр графика" className="graph-preview-svg" role="img" viewBox={`0 0 ${width} ${height}`}>
+        <svg aria-label="РџСЂРµРґРїСЂРѕСЃРјРѕС‚СЂ РіСЂР°С„РёРєР°" className="graph-preview-svg" role="img" viewBox={`0 0 ${width} ${height}`}>
           {yTicks.map((tick, index) => {
             const y = scaleY(tick);
 
@@ -1403,7 +1440,7 @@ function GraphPreview({ block }: { block: GraphBlock }) {
         {orderedSeries.map((series, index) => (
           <span className="graph-legend-item" key={series.id}>
             <span className="graph-legend-swatch" style={{ backgroundColor: series.color }} />
-            {series.label.trim() || `Серия ${index + 1}`}
+            {series.label.trim() || `РЎРµСЂРёСЏ ${index + 1}`}
           </span>
         ))}
       </div>
@@ -1440,35 +1477,61 @@ function BlockEditor({
   onUpdateGraphSeries: (seriesId: string, patch: Partial<Pick<GraphSeries, "label" | "color" | "points">>) => void;
   onUpdateListItem: (itemId: string, patch: Partial<{ label: string; text: string }>) => void;
 }) {
+  const calculationTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  function insertCalculationTemplate(template: string) {
+    if (block.type !== "calculation") return;
+
+    const textarea = calculationTextareaRef.current;
+    const marker = "__CURSOR__";
+    const insertion = template.replace(marker, "");
+    const selectionStart = textarea?.selectionStart ?? block.formula.length;
+    const selectionEnd = textarea?.selectionEnd ?? block.formula.length;
+    const nextFormula =
+      block.formula.slice(0, selectionStart) + insertion + block.formula.slice(selectionEnd);
+
+    onUpdate((current) =>
+      current.type === "calculation" ? { ...current, formula: nextFormula } : current
+    );
+
+    window.requestAnimationFrame(() => {
+      if (!textarea) return;
+      const cursorOffset = template.includes(marker) ? template.indexOf(marker) : insertion.length;
+      const cursorPosition = selectionStart + Math.max(cursorOffset, 0);
+      textarea.focus();
+      textarea.setSelectionRange(cursorPosition, cursorPosition);
+    });
+  }
+
   return (
     <div className={`block-editor type-${block.type}`}>
       <div className="block-head">
         <div>
-          <span className="block-index">Блок {blockIndex + 1}</span>
+          <span className="block-index">Р‘Р»РѕРє {blockIndex + 1}</span>
           <h3>{blockLabels[block.type]}</h3>
         </div>
         <div className="block-actions">
           <button className="mini-button" type="button" onClick={onDuplicate}>
-            Дубль
+            Р”СѓР±Р»СЊ
           </button>
           <button className="mini-button" type="button" onClick={onMoveUp}>
-            Вверх
+            Р’РІРµСЂС…
           </button>
           <button className="mini-button" type="button" onClick={onMoveDown}>
-            Вниз
+            Р’РЅРёР·
           </button>
           <button className="mini-button danger-text" type="button" onClick={onRemove}>
-            Удалить
+            РЈРґР°Р»РёС‚СЊ
           </button>
         </div>
       </div>
 
       {block.type === "text" && (
         <label className="field">
-          <span>Текст раздела</span>
+          <span>РўРµРєСЃС‚ СЂР°Р·РґРµР»Р°</span>
           <textarea
             className="large-textarea"
-            placeholder="Пишите текст отчёта здесь. Для принудительного переноса в LaTeX можно использовать \\\\."
+            placeholder="РџРёС€РёС‚Рµ С‚РµРєСЃС‚ РѕС‚С‡С‘С‚Р° Р·РґРµСЃСЊ. Р”Р»СЏ РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕРіРѕ РїРµСЂРµРЅРѕСЃР° РІ LaTeX РјРѕР¶РЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ \\\\."
             value={(block as TextBlock).content}
             onChange={(event) =>
               onUpdate((current) =>
@@ -1482,7 +1545,7 @@ function BlockEditor({
       {block.type === "figure" && (
         <div className="block-grid">
           <label className="field">
-            <span>Имя файла в папке images</span>
+            <span>РРјСЏ С„Р°Р№Р»Р° РІ РїР°РїРєРµ images</span>
             <input
               type="text"
               value={(block as FigureBlock).filename}
@@ -1494,7 +1557,7 @@ function BlockEditor({
             />
           </label>
           <label className="field">
-            <span>Подпись к рисунку</span>
+            <span>РџРѕРґРїРёСЃСЊ Рє СЂРёСЃСѓРЅРєСѓ</span>
             <input
               type="text"
               value={(block as FigureBlock).caption}
@@ -1505,41 +1568,106 @@ function BlockEditor({
               }
             />
           </label>
-          <p className="inline-note">Файл положите рядом с `.tex` в папку `images/`.</p>
+          <p className="inline-note">Р¤Р°Р№Р» РїРѕР»РѕР¶РёС‚Рµ СЂСЏРґРѕРј СЃ `.tex` РІ РїР°РїРєСѓ `images/`.</p>
         </div>
       )}
 
-      {(block.type === "code" || block.type === "calculation") && (
+      {block.type === "code" && (
         <>
           <label className="field">
-            <span>{block.type === "code" ? "Подпись к коду" : "Подпись к расчётам"}</span>
+            <span>Подпись к коду</span>
             <input
               type="text"
-              value={(block as CodeBlock | CalculationBlock).caption}
+              value={(block as CodeBlock).caption}
               onChange={(event) =>
                 onUpdate((current) =>
-                  current.type === "code" || current.type === "calculation"
-                    ? { ...current, caption: event.target.value }
-                    : current
+                  current.type === "code" ? { ...current, caption: event.target.value } : current
                 )
               }
             />
           </label>
           <label className="field">
-            <span>{block.type === "code" ? "Код" : "Расчёты"}</span>
+            <span>Код</span>
             <textarea
               className="code-textarea"
-              placeholder={block.type === "code" ? "Сюда можно вставлять код как есть." : "Сюда можно вставлять расчёты как есть."}
-              value={(block as CodeBlock | CalculationBlock).code}
+              placeholder="Сюда можно вставлять код как есть."
+              value={(block as CodeBlock).code}
+              onChange={(event) =>
+                onUpdate((current) => (current.type === "code" ? { ...current, code: event.target.value } : current))
+              }
+            />
+          </label>
+        </>
+      )}
+
+      {block.type === "calculation" && (
+        <>
+          <div className="block-grid">
+            <label className="field">
+              <span>Подпись к расчёту</span>
+              <input
+                type="text"
+                value={(block as CalculationBlock).caption}
+                onChange={(event) =>
+                  onUpdate((current) =>
+                    current.type === "calculation" ? { ...current, caption: event.target.value } : current
+                  )
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Формат вывода</span>
+              <select
+                value={(block as CalculationBlock).environment}
+                onChange={(event) =>
+                  onUpdate((current) =>
+                    current.type === "calculation"
+                      ? { ...current, environment: event.target.value as CalculationBlock["environment"] }
+                      : current
+                  )
+                }
+              >
+                {Object.entries(calculationEnvironmentLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="formula-toolbar">
+            {calculationInsertTemplates.map(({ label, template }) => (
+              <button
+                className="chip-button"
+                key={label}
+                type="button"
+                onClick={() => insertCalculationTemplate(template)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <label className="field">
+            <span>Формула или набор формул</span>
+            <textarea
+              ref={calculationTextareaRef}
+              className="code-textarea calculation-textarea"
+              placeholder={"Можно писать LaTeX-команды или просто Unicode-символы.\nНапример: \\sqrt{a^2+b^2} = c\nили: A ∩ B ⊆ C"}
+              value={(block as CalculationBlock).formula}
               onChange={(event) =>
                 onUpdate((current) =>
-                  current.type === "code" || current.type === "calculation"
-                    ? { ...current, code: event.target.value }
-                    : current
+                  current.type === "calculation" ? { ...current, formula: event.target.value } : current
                 )
               }
             />
           </label>
+
+          <p className="inline-note">
+            Поддерживаются `amsmath`, `amssymb`, `mathtools`, `mathrsfs`, `bm`, `cancel`, `siunitx`, `esint` и другие
+            математические пакеты. Частые Unicode-символы вроде `√`, `∩`, `≤`, `α`, `∞` автоматически переводятся в LaTeX.
+          </p>
         </>
       )}
 
@@ -1547,7 +1675,7 @@ function BlockEditor({
         <>
           <div className="block-grid">
             <label className="field">
-              <span>Подпись к таблице</span>
+              <span>РџРѕРґРїРёСЃСЊ Рє С‚Р°Р±Р»РёС†Рµ</span>
               <input
                 type="text"
                 value={(block as TableBlock).caption}
@@ -1559,7 +1687,7 @@ function BlockEditor({
               />
             </label>
             <label className="field">
-              <span>Столбцов, 0 = авто</span>
+              <span>РЎС‚РѕР»Р±С†РѕРІ, 0 = Р°РІС‚Рѕ</span>
               <input
                 min="0"
                 type="number"
@@ -1571,10 +1699,10 @@ function BlockEditor({
             </label>
           </div>
           <label className="field">
-            <span>Данные таблицы</span>
+            <span>Р”Р°РЅРЅС‹Рµ С‚Р°Р±Р»РёС†С‹</span>
             <textarea
               className="large-textarea"
-              placeholder={"Каждая строка — строка таблицы.\nЯчейки разделяйте точкой с запятой (;).\nОбъект;Структура;Состояние"}
+              placeholder={"РљР°Р¶РґР°СЏ СЃС‚СЂРѕРєР° вЂ” СЃС‚СЂРѕРєР° С‚Р°Р±Р»РёС†С‹.\nРЇС‡РµР№РєРё СЂР°Р·РґРµР»СЏР№С‚Рµ С‚РѕС‡РєРѕР№ СЃ Р·Р°РїСЏС‚РѕР№ (;).\nРћР±СЉРµРєС‚;РЎС‚СЂСѓРєС‚СѓСЂР°;РЎРѕСЃС‚РѕСЏРЅРёРµ"}
               value={(block as TableBlock).data}
               onChange={(event) =>
                 onUpdate((current) => (current.type === "table" ? { ...current, data: event.target.value } : current))
@@ -1588,7 +1716,7 @@ function BlockEditor({
         <>
           <div className="block-grid">
             <label className="field">
-              <span>Подпись к графику</span>
+              <span>РџРѕРґРїРёСЃСЊ Рє РіСЂР°С„РёРєСѓ</span>
               <input
                 type="text"
                 value={(block as GraphBlock).caption}
@@ -1600,7 +1728,7 @@ function BlockEditor({
               />
             </label>
             <label className="field">
-              <span>Заголовок внутри графика</span>
+              <span>Р—Р°РіРѕР»РѕРІРѕРє РІРЅСѓС‚СЂРё РіСЂР°С„РёРєР°</span>
               <input
                 type="text"
                 value={(block as GraphBlock).title}
@@ -1614,7 +1742,7 @@ function BlockEditor({
           </div>
           <div className="block-grid">
             <label className="field">
-              <span>Подпись оси X</span>
+              <span>РџРѕРґРїРёСЃСЊ РѕСЃРё X</span>
               <input
                 type="text"
                 value={(block as GraphBlock).xLabel}
@@ -1626,7 +1754,7 @@ function BlockEditor({
               />
             </label>
             <label className="field">
-              <span>Подпись оси Y</span>
+              <span>РџРѕРґРїРёСЃСЊ РѕСЃРё Y</span>
               <input
                 type="text"
                 value={(block as GraphBlock).yLabel}
@@ -1640,7 +1768,7 @@ function BlockEditor({
           </div>
           <div className="block-grid">
             <label className="field">
-              <span>Тип графика</span>
+              <span>РўРёРї РіСЂР°С„РёРєР°</span>
               <select
                 value={(block as GraphBlock).mode}
                 onChange={(event) =>
@@ -1651,12 +1779,12 @@ function BlockEditor({
                   )
                 }
               >
-                <option value="line">Линейный</option>
-                <option value="bar">Столбчатый</option>
+                <option value="line">Р›РёРЅРµР№РЅС‹Р№</option>
+                <option value="bar">РЎС‚РѕР»Р±С‡Р°С‚С‹Р№</option>
               </select>
             </label>
             <div className="field">
-              <span>Начинать ось с нуля</span>
+              <span>РќР°С‡РёРЅР°С‚СЊ РѕСЃСЊ СЃ РЅСѓР»СЏ</span>
               <label className="toggle-field graph-zero-toggle">
                 <input
                   checked={(block as GraphBlock).startAtZero}
@@ -1667,7 +1795,7 @@ function BlockEditor({
                     )
                   }
                 />
-                <span>Да, от 0</span>
+                <span>Р”Р°, РѕС‚ 0</span>
               </label>
             </div>
           </div>
@@ -1678,41 +1806,41 @@ function BlockEditor({
             {(block as GraphBlock).series.map((series, index) => (
               <div className="series-editor" key={series.id}>
                 <div className="series-head">
-                  <strong>{series.label.trim() || `Серия ${index + 1}`}</strong>
+                  <strong>{series.label.trim() || `РЎРµСЂРёСЏ ${index + 1}`}</strong>
                   <button className="mini-button danger-text" type="button" onClick={() => onRemoveGraphSeries(series.id)}>
-                    Удалить серию
+                    РЈРґР°Р»РёС‚СЊ СЃРµСЂРёСЋ
                   </button>
                 </div>
                 <div className="block-grid">
                   <label className="field">
-                    <span>Название серии</span>
+                    <span>РќР°Р·РІР°РЅРёРµ СЃРµСЂРёРё</span>
                     <input
-                      placeholder={`Например: API ${index + 1}`}
+                      placeholder={`РќР°РїСЂРёРјРµСЂ: API ${index + 1}`}
                       type="text"
                       value={series.label}
                       onChange={(event) => onUpdateGraphSeries(series.id, { label: event.target.value })}
                     />
                   </label>
                   <label className="field">
-                    <span>Цвет серии</span>
+                    <span>Р¦РІРµС‚ СЃРµСЂРёРё</span>
                     <select
                       value={series.color}
                       onChange={(event) => onUpdateGraphSeries(series.id, { color: event.target.value })}
                     >
-                      <option value="teal">Бирюзовый</option>
-                      <option value="blue">Синий</option>
-                      <option value="red">Красный</option>
-                      <option value="orange">Оранжевый</option>
-                      <option value="green!60!black">Зелёный</option>
-                      <option value="violet">Фиолетовый</option>
+                      <option value="teal">Р‘РёСЂСЋР·РѕРІС‹Р№</option>
+                      <option value="blue">РЎРёРЅРёР№</option>
+                      <option value="red">РљСЂР°СЃРЅС‹Р№</option>
+                      <option value="orange">РћСЂР°РЅР¶РµРІС‹Р№</option>
+                      <option value="green!60!black">Р—РµР»С‘РЅС‹Р№</option>
+                      <option value="violet">Р¤РёРѕР»РµС‚РѕРІС‹Р№</option>
                     </select>
                   </label>
                 </div>
                 <label className="field">
-                  <span>Точки серии</span>
+                  <span>РўРѕС‡РєРё СЃРµСЂРёРё</span>
                   <textarea
                     className="large-textarea"
-                    placeholder={"Каждая строка — одна точка.\nФормат: X;Y\nЯнв;12\nФев;18\nМар;15"}
+                    placeholder={"РљР°Р¶РґР°СЏ СЃС‚СЂРѕРєР° вЂ” РѕРґРЅР° С‚РѕС‡РєР°.\nР¤РѕСЂРјР°С‚: X;Y\nРЇРЅРІ;12\nР¤РµРІ;18\nРњР°СЂ;15"}
                     value={series.points}
                     onChange={(event) => onUpdateGraphSeries(series.id, { points: event.target.value })}
                   />
@@ -1721,11 +1849,11 @@ function BlockEditor({
             ))}
           </div>
           <button className="chip-button" type="button" onClick={onAddGraphSeries}>
-            + Серия
+            + РЎРµСЂРёСЏ
           </button>
           <p className="inline-note">
-            Можно накладывать несколько серий на одну систему координат. Формат данных для каждой серии: одна строка —
-            одна точка, `X;Y`.
+            РњРѕР¶РЅРѕ РЅР°РєР»Р°РґС‹РІР°С‚СЊ РЅРµСЃРєРѕР»СЊРєРѕ СЃРµСЂРёР№ РЅР° РѕРґРЅСѓ СЃРёСЃС‚РµРјСѓ РєРѕРѕСЂРґРёРЅР°С‚. Р¤РѕСЂРјР°С‚ РґР°РЅРЅС‹С… РґР»СЏ РєР°Р¶РґРѕР№ СЃРµСЂРёРё: РѕРґРЅР° СЃС‚СЂРѕРєР° вЂ”
+            РѕРґРЅР° С‚РѕС‡РєР°, `X;Y`.
           </p>
         </>
       )}
@@ -1742,13 +1870,13 @@ function BlockEditor({
                 )
               }
             />
-            <span>Нумерованный список</span>
+            <span>РќСѓРјРµСЂРѕРІР°РЅРЅС‹Р№ СЃРїРёСЃРѕРє</span>
           </label>
 
           {(block as ListBlock).items.map((item, index) => (
             <div className="list-row" key={item.id}>
               <label className="field">
-                <span>Объект {index + 1}</span>
+                <span>РћР±СЉРµРєС‚ {index + 1}</span>
                 <input
                   type="text"
                   value={item.label}
@@ -1756,7 +1884,7 @@ function BlockEditor({
                 />
               </label>
               <label className="field">
-                <span>Текст {index + 1}</span>
+                <span>РўРµРєСЃС‚ {index + 1}</span>
                 <input
                   type="text"
                   value={item.text}
@@ -1764,20 +1892,24 @@ function BlockEditor({
                 />
               </label>
               <button className="mini-button danger-text list-remove" type="button" onClick={() => onRemoveListItem(item.id)}>
-                Удалить
+                РЈРґР°Р»РёС‚СЊ
               </button>
             </div>
           ))}
 
           <button className="chip-button" type="button" onClick={onAddListItem}>
-            + Пункт
+            + РџСѓРЅРєС‚
           </button>
         </div>
       )}
 
       {block.type === "pagebreak" && (
-        <p className="inline-note">В итоговый файл будет добавлена команда `\clearpage`.</p>
+        <p className="inline-note">Р’ РёС‚РѕРіРѕРІС‹Р№ С„Р°Р№Р» Р±СѓРґРµС‚ РґРѕР±Р°РІР»РµРЅР° РєРѕРјР°РЅРґР° `\clearpage`.</p>
       )}
     </div>
   );
 }
+
+
+
+
