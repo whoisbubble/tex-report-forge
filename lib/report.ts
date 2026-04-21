@@ -283,6 +283,23 @@ function latexEscape(text: string) {
     .replace(/&/g, "\\&");
 }
 
+function normalizeCodeForLatex(code: string) {
+  return code
+    .replace(/\r\n?/g, "\n")
+    .replace(/[\u00A0\u202F]/g, " ")
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "");
+}
+
+function buildListingsLiterateMap() {
+  const supportedChars = [
+    ..."АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ".split(""),
+    ..."абвгдеёжзийклмнопрстуфхцчшщъыьэюя".split(""),
+    ..."«»№–—…“”„’".split("")
+  ];
+
+  return supportedChars.map((char) => `  {${char}}{{\\selectfont ${char}}}1`).join("\n");
+}
+
 function buildPreamble() {
   return String.raw`\documentclass[14pt]{extarticle}
 
@@ -353,7 +370,9 @@ function buildPreamble() {
 \setlength{\cftbeforesubsubsecskip}{1pt}
 
 % ===== Код =====
+\usepackage{upquote}
 \usepackage{listings}
+\usepackage{listingsutf8}
 \DeclareCaptionLabelFormat{nolabel}{}
 \captionsetup[lstlisting]{labelformat=nolabel}
 \lstset{
@@ -361,7 +380,14 @@ function buildPreamble() {
   breaklines=true,
   captionpos=b,
   tabsize=2,
-  columns=fullflexible
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  upquote=true,
+  extendedchars=true,
+  inputencoding=utf8,
+  literate=
+${buildListingsLiterateMap()}
 }
 
 % ===== Настройка размеров заголовков =====
@@ -497,9 +523,10 @@ function buildBlocks(
 
     if (block.type === "code") {
       const currentCodeIndex = counters.code++;
+      const normalizedCode = normalizeCodeForLatex(block.code);
       out += String.raw`
 \begin{lstlisting}[caption={Код ${currentCodeIndex} - ${latexEscape(block.caption)}}]
-` + block.code + String.raw`
+` + normalizedCode + String.raw`
 \end{lstlisting}
 
 `;
