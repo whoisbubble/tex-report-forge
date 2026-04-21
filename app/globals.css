@@ -358,6 +358,17 @@ textarea:focus {
   line-height: 1.45;
 }
 
+.search-field {
+  margin-bottom: 8px;
+}
+
+.search-hint {
+  margin-top: 0;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .level-picker {
   display: grid;
   gap: 8px;
@@ -455,6 +466,10 @@ textarea:focus {
   overflow: clip;
 }
 
+.section-panel.collapsed .section-head {
+  border-bottom: 0;
+}
+
 .section-panel.selected {
   box-shadow:
     0 0 0 2px rgba(232, 93, 117, 0.42),
@@ -526,6 +541,26 @@ textarea:focus {
   gap: 8px;
   padding: 14px 16px;
   border-bottom: 1px solid var(--line);
+}
+
+.section-collapsed-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 16px 16px;
+}
+
+.section-collapsed-summary span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  background: #111612;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .chip-button {
@@ -618,6 +653,129 @@ textarea:focus {
 .series-list {
   display: grid;
   gap: 12px;
+}
+
+.graph-preview {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #0f1411;
+}
+
+.graph-preview-empty {
+  padding: 18px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  background: #101411;
+}
+
+.graph-preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.graph-preview-meta strong {
+  font-size: 14px;
+}
+
+.graph-preview-meta span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.graph-preview-frame {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(232, 93, 117, 0.08), transparent 44%),
+    #0a0d0b;
+}
+
+.graph-preview-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.graph-grid-line {
+  stroke: rgba(244, 240, 236, 0.12);
+  stroke-width: 1;
+}
+
+.graph-grid-line.vertical {
+  stroke: rgba(244, 240, 236, 0.07);
+}
+
+.graph-axis-line {
+  stroke: rgba(244, 240, 236, 0.5);
+  stroke-width: 1.5;
+}
+
+.graph-series-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.graph-series-point {
+  stroke: #0a0d0b;
+  stroke-width: 2;
+}
+
+.graph-axis-label,
+.graph-axis-title,
+.graph-title {
+  fill: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.graph-axis-label {
+  fill: var(--muted);
+  font-size: 12px;
+}
+
+.graph-axis-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.graph-title {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.graph-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #101411;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.graph-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
 .series-editor {

@@ -20,6 +20,7 @@ import {
   type ReportBlock,
   type ReportDraft,
   type ReportMeta,
+  type ReportSection,
   type SectionLevel,
   type TableBlock,
   type TextBlock
@@ -65,6 +66,15 @@ const metaFields: Array<{
   { key: "year", label: "Год", type: "number" }
 ];
 
+const graphPreviewColors: Record<string, string> = {
+  teal: "#4fd0b0",
+  blue: "#74a7ff",
+  red: "#ff7389",
+  orange: "#ffae57",
+  "green!60!black": "#8ad06f",
+  violet: "#c18cff"
+};
+
 export default function Home() {
   const [draft, setDraft] = useState<ReportDraft>(() => createInitialDraft());
   const [currentLevel, setCurrentLevel] = useState<SectionLevel>(0);
@@ -74,10 +84,26 @@ export default function Home() {
   const [pdfStatus, setPdfStatus] = useState<"idle" | "building" | "done" | "error">("idle");
   const [loaded, setLoaded] = useState(false);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [collapsedSectionIds, setCollapsedSectionIds] = useState<string[]>([]);
   const projectInputRef = useRef<HTMLInputElement>(null);
 
   const tex = useMemo(() => buildFullTex(draft), [draft]);
   const sectionDisplayInfo = useMemo(() => buildSectionDisplayInfo(draft.sections), [draft.sections]);
+  const sectionSearchIndex = useMemo(
+    () =>
+      Object.fromEntries(
+        draft.sections.map((section) => [section.id, buildSectionSearchText(section, sectionDisplayInfo[section.id]?.fullTitle || "")])
+      ),
+    [draft.sections, sectionDisplayInfo]
+  );
+  const filteredSections = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    if (!normalizedQuery) return draft.sections;
+
+    return draft.sections.filter((section) => sectionSearchIndex[section.id].includes(normalizedQuery));
+  }, [draft.sections, searchQuery, sectionSearchIndex]);
   const isTexDirty = generatedSnapshot !== "" && generatedSnapshot !== tex;
   const blockCount = useMemo(
     () => draft.sections.reduce((total, section) => total + section.blocks.length, 0),
@@ -209,6 +235,20 @@ export default function Home() {
       ...previous,
       sections: previous.sections.filter((section) => section.id !== sectionId)
     }));
+  }
+
+  function toggleSectionCollapse(sectionId: string) {
+    setCollapsedSectionIds((previous) =>
+      previous.includes(sectionId) ? previous.filter((id) => id !== sectionId) : [...previous, sectionId]
+    );
+  }
+
+  function collapseAllSections() {
+    setCollapsedSectionIds(draft.sections.map((section) => section.id));
+  }
+
+  function expandAllSections() {
+    setCollapsedSectionIds([]);
   }
 
   function duplicateSection(sectionId: string) {
@@ -734,6 +774,21 @@ export default function Home() {
               ширину страницы.
             </p>
 
+            <label className="field search-field">
+              <span>Глобальный поиск</span>
+              <input
+                type="text"
+                placeholder="Заголовок, текст, код, таблица, график..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+              />
+            </label>
+            <p className="search-hint">
+              {searchQuery.trim()
+                ? `Найдено разделов: ${filteredSections.length} из ${draft.sections.length}`
+                : "Поиск идёт по заголовкам, тексту, коду, таблицам, графикам и спискам."}
+            </p>
+
             <div className="level-picker" role="group" aria-label="Текущий уровень раздела">
               {([0, 1, 2] as SectionLevel[]).map((level) => (
                 <button
@@ -762,13 +817,19 @@ export default function Home() {
               >
                 Подняться уровнем выше
               </button>
+              <button className="button ghost full" type="button" onClick={collapseAllSections}>
+                Свернуть все
+              </button>
+              <button className="button ghost full" type="button" onClick={expandAllSections}>
+                Развернуть все
+              </button>
               <button className="button danger full" type="button" onClick={clearDraft}>
                 Очистить черновик
               </button>
             </div>
 
             <nav className="section-jump" aria-label="Навигация по разделам">
-              {draft.sections.map((section, index) => (
+              {filteredSections.map((section, index) => (
                 <a
                   className={`jump level-${section.level} ${selectedSectionId === section.id ? "active" : ""}`}
                   href={`#${section.id}`}
@@ -788,14 +849,22 @@ export default function Home() {
               <h2>Разделов пока нет</h2>
               <p>Добавьте первый раздел, а потом наполняйте его текстом, кодом, таблицами и рисунками.</p>
             </div>
+          ) : filteredSections.length === 0 ? (
+            <div className="empty-state">
+              <h2>Ничего не найдено</h2>
+              <p>Попробуйте другой запрос. Поиск смотрит и в заголовки, и внутрь блоков.</p>
+            </div>
           ) : (
-            draft.sections.map((section, sectionIndex) => (
-              <article
-                className={`section-panel level-${section.level} ${selectedSectionId === section.id ? "selected" : ""}`}
-                id={section.id}
-                key={section.id}
-                onClick={() => setSelectedSectionId(section.id)}
-              >
+            filteredSections.map((section, sectionIndex) => {
+              const isCollapsed = !searchQuery.trim() && collapsedSectionIds.includes(section.id);
+
+              return (
+                <article
+                  className={`section-panel level-${section.level} ${selectedSectionId === section.id ? "selected" : ""} ${isCollapsed ? "collapsed" : ""}`}
+                  id={section.id}
+                  key={section.id}
+                  onClick={() => setSelectedSectionId(section.id)}
+                >
                 <div className="section-head">
                   <div className="section-title-row">
                     <span className="section-number">
@@ -861,6 +930,16 @@ export default function Home() {
                     <button className="mini-button" type="button" onClick={() => duplicateSection(section.id)}>
                       Дубль
                     </button>
+                    <button
+                      className="mini-button"
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        toggleSectionCollapse(section.id);
+                      }}
+                    >
+                      {isCollapsed ? "Развернуть" : "Свернуть"}
+                    </button>
                     <button className="mini-button" type="button" onClick={() => moveSection(section.id, -1)}>
                       Вверх
                     </button>
@@ -872,8 +951,7 @@ export default function Home() {
                     </button>
                   </div>
                 </div>
-
-                <div className="block-toolbar">
+                {!isCollapsed && <div className="block-toolbar">
                   {(["text", "figure", "code", "table", "graph", "list", "pagebreak"] as ReportBlock["type"][]).map(
                     (type) => (
                       <button className="chip-button" key={type} type="button" onClick={() => addBlock(section.id, type)}>
@@ -881,8 +959,14 @@ export default function Home() {
                       </button>
                     )
                   )}
-                </div>
+                </div>}
 
+                {isCollapsed ? (
+                  <div className="section-collapsed-summary">
+                    <span>{section.blocks.length} блоков</span>
+                    <span>{section.level === 0 ? "Раздел" : section.level === 1 ? "Подраздел" : "Подпункт"}</span>
+                  </div>
+                ) : (
                 <div className="blocks">
                   {section.blocks.length === 0 ? (
                     <p className="block-empty">В разделе ещё нет блоков. Добавьте текст, рисунок, код или таблицу.</p>
@@ -907,8 +991,10 @@ export default function Home() {
                     ))
                   )}
                 </div>
+                )}
               </article>
-            ))
+            );
+            })
           )}
         </div>
       </section>
@@ -953,6 +1039,71 @@ export default function Home() {
   );
 }
 
+function buildSectionSearchText(section: ReportSection, fullTitle: string) {
+  const blockText = section.blocks.map((block) => getBlockSearchText(block)).join(" ");
+
+  return `${fullTitle} ${section.title} ${blockText}`.toLowerCase();
+}
+
+function getBlockSearchText(block: ReportBlock) {
+  switch (block.type) {
+    case "text":
+      return block.content;
+    case "figure":
+      return `${block.filename} ${block.caption}`;
+    case "code":
+      return `${block.caption} ${block.code}`;
+    case "table":
+      return `${block.caption} ${block.cols} ${block.data}`;
+    case "graph":
+      return `${block.caption} ${block.title} ${block.xLabel} ${block.yLabel} ${block.mode} ${block.series
+        .map((series) => `${series.label} ${series.color} ${series.points}`)
+        .join(" ")}`;
+    case "list":
+      return block.items.map((item) => `${item.label} ${item.text}`).join(" ");
+    case "pagebreak":
+      return "clearpage pagebreak";
+    default:
+      return "";
+  }
+}
+
+function parseGraphPreviewPoints(points: string) {
+  return points
+    .split("\n")
+    .map((row) => row.trim())
+    .filter(Boolean)
+    .map((row) => {
+      const [x = "", y = ""] = row.split(";");
+      const xRaw = x.trim();
+      const yValue = Number(y.trim().replace(",", "."));
+      const xNumeric = /^-?\d+(?:[.,]\d+)?$/.test(xRaw) ? Number(xRaw.replace(",", ".")) : null;
+
+      return {
+        xRaw,
+        xNumeric,
+        y: Number.isFinite(yValue) ? yValue : null
+      };
+    })
+    .filter((point) => point.xRaw && point.y !== null) as Array<{
+    xRaw: string;
+    xNumeric: number | null;
+    y: number;
+  }>;
+}
+
+function resolveGraphPreviewColor(color: string) {
+  return graphPreviewColors[color] ?? color ?? "#ffae57";
+}
+
+function formatAxisTick(value: number) {
+  if (Math.abs(value) >= 100 || Number.isInteger(value)) {
+    return String(Math.round(value * 100) / 100);
+  }
+
+  return value.toFixed(2).replace(/\.?0+$/, "");
+}
+
 function extractDraftFromProjectFile(value: unknown): ReportDraft | null {
   if (isReportDraft(value)) {
     return value;
@@ -985,6 +1136,230 @@ function isReportDraft(value: unknown): value is ReportDraft {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function GraphPreview({ block }: { block: GraphBlock }) {
+  const width = 760;
+  const height = 320;
+  const padding = { top: 24, right: 22, bottom: 56, left: 58 };
+  const plotWidth = width - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+
+  const parsedSeries = block.series
+    .map((series) => ({
+      ...series,
+      color: resolveGraphPreviewColor(series.color),
+      points: parseGraphPreviewPoints(series.points)
+    }))
+    .filter((series) => series.points.length > 0);
+
+  if (parsedSeries.length === 0) {
+    return <div className="graph-preview-empty">Добавьте хотя бы одну корректную точку в формате `X;Y`.</div>;
+  }
+
+  const allPoints = parsedSeries.flatMap((series) => series.points);
+  const isNumericX = allPoints.every((point) => point.xNumeric !== null);
+  const categories = Array.from(new Set(allPoints.map((point) => point.xRaw)));
+  const orderedSeries = parsedSeries.map((series) => ({
+    ...series,
+    points: [...series.points].sort((left, right) => {
+      if (!isNumericX) {
+        return categories.indexOf(left.xRaw) - categories.indexOf(right.xRaw);
+      }
+
+      return (left.xNumeric ?? 0) - (right.xNumeric ?? 0);
+    })
+  }));
+
+  const xNumbers = isNumericX ? allPoints.map((point) => point.xNumeric ?? 0) : [];
+  let xMin = isNumericX ? Math.min(...xNumbers) : 0;
+  let xMax = isNumericX ? Math.max(...xNumbers) : Math.max(categories.length - 1, 1);
+
+  if (block.startAtZero && isNumericX) {
+    xMin = Math.min(0, xMin);
+  }
+
+  if (xMin === xMax) {
+    xMin -= 1;
+    xMax += 1;
+  }
+
+  const yNumbers = allPoints.map((point) => point.y);
+  let yMin = block.startAtZero ? 0 : Math.min(...yNumbers);
+  let yMax = Math.max(...yNumbers);
+
+  if (yMin === yMax) {
+    yMax += Math.max(Math.abs(yMax) * 0.15, 1);
+    if (!block.startAtZero) {
+      yMin -= Math.max(Math.abs(yMin) * 0.15, 1);
+    }
+  } else {
+    const yPadding = (yMax - yMin) * 0.08;
+    yMax += yPadding;
+    if (!block.startAtZero) {
+      yMin -= yPadding * 0.35;
+    }
+  }
+
+  const baselineValue = yMin <= 0 && yMax >= 0 ? 0 : yMin;
+  const scaleX = (value: number) => padding.left + ((value - xMin) / (xMax - xMin)) * plotWidth;
+  const scaleY = (value: number) => padding.top + (1 - (value - yMin) / (yMax - yMin)) * plotHeight;
+  const categoryStep = categories.length > 1 ? plotWidth / (categories.length - 1) : 0;
+  const scaleCategoryX = (index: number) =>
+    categories.length <= 1 ? padding.left + plotWidth / 2 : padding.left + categoryStep * index;
+
+  const yTicks = Array.from({ length: 5 }, (_, index) => yMin + ((yMax - yMin) * index) / 4);
+  const xTicks = isNumericX
+    ? Array.from({ length: 5 }, (_, index) => {
+        const value = xMin + ((xMax - xMin) * index) / 4;
+        return {
+          key: `tick-${index}`,
+          label: formatAxisTick(value),
+          x: scaleX(value)
+        };
+      })
+    : categories.map((category, index) => ({
+        key: category,
+        label: category,
+        x: scaleCategoryX(index)
+      }));
+
+  const barGroupWidth = Math.min(84, plotWidth / Math.max(categories.length, 1) * 0.72);
+  const barWidth = Math.max((barGroupWidth - 8) / Math.max(orderedSeries.length, 1), 10);
+  const baselineY = scaleY(baselineValue);
+
+  return (
+    <div className="graph-preview">
+      <div className="graph-preview-meta">
+        <strong>Предпросмотр графика</strong>
+        <span>
+          Серий: {orderedSeries.length} · Точек: {allPoints.length}
+        </span>
+      </div>
+
+      <div className="graph-preview-frame">
+        <svg aria-label="Предпросмотр графика" className="graph-preview-svg" role="img" viewBox={`0 0 ${width} ${height}`}>
+          {yTicks.map((tick, index) => {
+            const y = scaleY(tick);
+
+            return (
+              <g key={`y-${index}`}>
+                <line className="graph-grid-line" x1={padding.left} x2={width - padding.right} y1={y} y2={y} />
+                <text className="graph-axis-label" textAnchor="end" x={padding.left - 10} y={y + 4}>
+                  {formatAxisTick(tick)}
+                </text>
+              </g>
+            );
+          })}
+
+          {xTicks.map((tick) => (
+            <g key={tick.key}>
+              <line className="graph-grid-line vertical" x1={tick.x} x2={tick.x} y1={padding.top} y2={height - padding.bottom} />
+              <text className="graph-axis-label" textAnchor="middle" x={tick.x} y={height - padding.bottom + 24}>
+                {tick.label}
+              </text>
+            </g>
+          ))}
+
+          <line className="graph-axis-line" x1={padding.left} x2={width - padding.right} y1={baselineY} y2={baselineY} />
+          <line className="graph-axis-line" x1={padding.left} x2={padding.left} y1={padding.top} y2={height - padding.bottom} />
+
+          {orderedSeries.map((series, seriesIndex) => {
+            if (block.mode === "bar") {
+              return (
+                <g key={series.id}>
+                  {series.points.map((point) => {
+                    const categoryIndex = categories.indexOf(point.xRaw);
+                    const groupCenter = scaleCategoryX(categoryIndex);
+                    const x =
+                      groupCenter -
+                      barGroupWidth / 2 +
+                      seriesIndex * barWidth +
+                      Math.max((barGroupWidth - barWidth * orderedSeries.length) / 2, 0);
+                    const y = scaleY(point.y);
+                    const rectHeight = Math.max(Math.abs(baselineY - y), 1);
+
+                    return (
+                      <rect
+                        key={`${series.id}-${point.xRaw}-${point.y}`}
+                        fill={series.color}
+                        opacity="0.82"
+                        rx="4"
+                        ry="4"
+                        stroke={series.color}
+                        x={x}
+                        y={Math.min(y, baselineY)}
+                        width={barWidth - 3}
+                        height={rectHeight}
+                      />
+                    );
+                  })}
+                </g>
+              );
+            }
+
+            const coordinates = series.points.map((point) => {
+              const x = isNumericX ? scaleX(point.xNumeric ?? 0) : scaleCategoryX(categories.indexOf(point.xRaw));
+              const y = scaleY(point.y);
+
+              return { x, y, key: `${series.id}-${point.xRaw}-${point.y}` };
+            });
+
+            const path = coordinates
+              .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
+              .join(" ");
+
+            return (
+              <g key={series.id}>
+                <path className="graph-series-line" d={path} stroke={series.color} />
+                {coordinates.map((point) => (
+                  <circle
+                    key={point.key}
+                    className="graph-series-point"
+                    cx={point.x}
+                    cy={point.y}
+                    fill={series.color}
+                    r="4.5"
+                  />
+                ))}
+              </g>
+            );
+          })}
+
+          {block.title.trim() ? (
+            <text className="graph-title" textAnchor="middle" x={width / 2} y={14}>
+              {block.title}
+            </text>
+          ) : null}
+
+          {block.xLabel.trim() ? (
+            <text className="graph-axis-title" textAnchor="middle" x={width / 2} y={height - 12}>
+              {block.xLabel}
+            </text>
+          ) : null}
+
+          {block.yLabel.trim() ? (
+            <text
+              className="graph-axis-title"
+              textAnchor="middle"
+              transform={`translate(18 ${height / 2}) rotate(-90)`}
+            >
+              {block.yLabel}
+            </text>
+          ) : null}
+        </svg>
+      </div>
+
+      <div className="graph-legend">
+        {orderedSeries.map((series, index) => (
+          <span className="graph-legend-item" key={series.id}>
+            <span className="graph-legend-swatch" style={{ backgroundColor: series.color }} />
+            {series.label.trim() || `Серия ${index + 1}`}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function BlockEditor({
@@ -1241,6 +1616,8 @@ function BlockEditor({
               </label>
             </div>
           </div>
+
+          <GraphPreview block={block as GraphBlock} />
 
           <div className="series-list">
             {(block as GraphBlock).series.map((series, index) => (
