@@ -1,4 +1,5 @@
 export type SectionLevel = 0 | 1 | 2;
+export type TitlePageFontSize = "small" | "normalsize" | "large" | "Large" | "LARGE" | "huge" | "Huge";
 
 export type TextBlock = {
   id: string;
@@ -25,16 +26,30 @@ export type CalculationBlock = {
   type: "calculation";
   caption: string;
   environment: CalculationEnvironment;
+  fontSize: CalculationFontSize;
   formula: string;
 };
 
-export type CalculationEnvironment = "equation*" | "equation" | "align*" | "align" | "gather*" | "gather";
+export type CalculationEnvironment =
+  | "equation*"
+  | "equation"
+  | "align*"
+  | "align"
+  | "gather*"
+  | "gather"
+  | "multline*"
+  | "multline";
+
+export type CalculationFontSize = "normalsize" | "small" | "footnotesize" | "scriptsize" | "tiny";
 
 export type TableBlock = {
   id: string;
   type: "table";
   caption: string;
   cols: string;
+  fontSize: CalculationFontSize;
+  fitToWidth: boolean;
+  wrapCells: boolean;
   data: string;
 };
 
@@ -94,6 +109,11 @@ export type ReportSection = {
 };
 
 export type ReportMeta = {
+  ministryLine1: string;
+  ministryLine2: string;
+  universityLine1: string;
+  universityLine2: string;
+  universityLine3: string;
   kafedra: string;
   tema: string;
   vidRaboty: string;
@@ -106,6 +126,16 @@ export type ReportMeta = {
   rukovoditel: string;
   city: string;
   year: string;
+  titlePageHeaderSize: TitlePageFontSize;
+  titlePageUniversitySize: TitlePageFontSize;
+  titlePageKafedraSize: TitlePageFontSize;
+  titlePageWorkTitleSize: TitlePageFontSize;
+  titlePageDisciplineSize: TitlePageFontSize;
+  titlePageCodeSize: TitlePageFontSize;
+  titlePageSignatureLabelSize: TitlePageFontSize;
+  titlePageSignatureNameSize: TitlePageFontSize;
+  titlePageSignNoteSize: TitlePageFontSize;
+  titlePageFooterSize: TitlePageFontSize;
   includeToc: boolean;
 };
 
@@ -121,6 +151,11 @@ export type SectionDisplayInfo = {
 };
 
 export const defaultMeta: ReportMeta = {
+  ministryLine1: "Министерство транспорта Российской Федерации",
+  ministryLine2: "Федеральное агентство железнодорожного транспорта",
+  universityLine1: "Федеральное государственное бюджетное образовательное учреждение",
+  universityLine2: "высшего образования",
+  universityLine3: "«Дальневосточный государственный университет путей сообщения»",
   kafedra: "Информационные технологии и системы",
   tema: "Анализ ИС",
   vidRaboty: "Практическая работа №2",
@@ -133,6 +168,16 @@ export const defaultMeta: ReportMeta = {
   rukovoditel: "О.В.~Рыбкина",
   city: "Хабаровск",
   year: "2025",
+  titlePageHeaderSize: "normalsize",
+  titlePageUniversitySize: "normalsize",
+  titlePageKafedraSize: "normalsize",
+  titlePageWorkTitleSize: "large",
+  titlePageDisciplineSize: "large",
+  titlePageCodeSize: "Large",
+  titlePageSignatureLabelSize: "large",
+  titlePageSignatureNameSize: "large",
+  titlePageSignNoteSize: "small",
+  titlePageFooterSize: "normalsize",
   includeToc: false
 };
 
@@ -168,12 +213,22 @@ export function createBlock(type: ReportBlock["type"], figureIndex = 1): ReportB
       type,
       caption: "",
       environment: "equation*",
+      fontSize: "normalsize",
       formula: ""
     };
   }
 
   if (type === "table") {
-    return { id: makeId("block"), type, caption: "", cols: "", data: "" };
+    return {
+      id: makeId("block"),
+      type,
+      caption: "",
+      cols: "",
+      fontSize: "normalsize",
+      fitToWidth: false,
+      wrapCells: true,
+      data: ""
+    };
   }
 
   if (type === "graph") {
@@ -363,6 +418,9 @@ export function createExampleDraft(): ReportDraft {
             type: "table",
             caption: "План проверки",
             cols: "3",
+            fontSize: "normalsize",
+            fitToWidth: false,
+            wrapCells: true,
             data: "Этап;Действие;Результат\n1;Заполнение титульного листа;Данные сохранены\n2;Добавление разделов;Структура отчёта готова\n3;Генерация .tex;Файл можно компилировать"
           },
           {
@@ -439,7 +497,7 @@ export function createCapabilitiesDraft(): ReportDraft {
               {
                 id: "item-cap-overview-1",
                 label: "meta",
-                text: "Title page fields used by the report and LaTeX export"
+                text: "Title page fields, editable title-page text lines and font sizes used by the report and LaTeX export"
               },
               {
                 id: "item-cap-overview-2",
@@ -479,7 +537,7 @@ export function createCapabilitiesDraft(): ReportDraft {
             id: "block-cap-text-list-text",
             type: "text",
             content:
-              "This subsection shows plain text blocks and list blocks. Lists may be ordered or unordered and each item stores label and text separately."
+              "This subsection shows plain text blocks and list blocks. Text blocks may also contain inline math like $\\mu_D(8)=0{,}5$. Lists may be ordered or unordered and each item stores label and text separately."
           },
           {
             id: "block-cap-text-list-list",
@@ -542,6 +600,7 @@ export function createCapabilitiesDraft(): ReportDraft {
             type: "calculation",
             caption: "Example calculation block",
             environment: "align*",
+            fontSize: "footnotesize",
             formula: String.raw`\sqrt{a^2+b^2} = c \\
 P = U \cdot I \\
 A \cap B \subseteq C`
@@ -551,7 +610,11 @@ A \cap B \subseteq C`
             type: "table",
             caption: "Example table block",
             cols: "3",
-            data: "Field;Type;Purpose\nmeta;object;Title page data\nsections;array;Document structure\nblocks;array;Section content"
+            fontSize: "small",
+            fitToWidth: true,
+            wrapCells: true,
+            data:
+              "Параметр;Обозначение;Значение\nФункция принадлежности;$\\mu_A(x)$;$\\frac{1}{2}$\nПересечение;$X \\cap Y$;$0{,}4$"
           }
         ]
       },
@@ -664,8 +727,19 @@ function latexEscape(text: string) {
     .replace(/&/g, "\\&");
 }
 
+function titlePageSizeCommand(size: TitlePageFontSize) {
+  return `\\${size}`;
+}
+
 function normalizeCodeForLatex(code: string) {
   return code
+    .replace(/\r\n?/g, "\n")
+    .replace(/[\u00A0\u202F]/g, " ")
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "");
+}
+
+function normalizeTextForLatex(text: string) {
+  return text
     .replace(/\r\n?/g, "\n")
     .replace(/[\u00A0\u202F]/g, " ")
     .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "");
@@ -755,16 +829,69 @@ const unicodeMathReplacements: Array<[RegExp, string]> = [
 ];
 
 function normalizeFormulaForLatex(formula: string) {
-  let normalized = formula
-    .replace(/\r\n?/g, "\n")
-    .replace(/[\u00A0\u202F]/g, " ")
-    .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "");
+  let normalized = normalizeTextForLatex(formula);
+
+  normalized = normalized.replace(/([A-Za-zА-Яа-я0-9])\u0304/g, String.raw`\overline{$1}`);
 
   unicodeMathReplacements.forEach(([pattern, replacement]) => {
     normalized = normalized.replace(pattern, replacement);
   });
 
   return normalized;
+}
+
+function normalizeDelimitedMathSegment(segment: string) {
+  if (segment.startsWith("$$") && segment.endsWith("$$")) {
+    return `$$${normalizeFormulaForLatex(segment.slice(2, -2))}$$`;
+  }
+
+  if (segment.startsWith("\\[") && segment.endsWith("\\]")) {
+    return `\\[${normalizeFormulaForLatex(segment.slice(2, -2))}\\]`;
+  }
+
+  if (segment.startsWith("\\(") && segment.endsWith("\\)")) {
+    return `\\(${normalizeFormulaForLatex(segment.slice(2, -2))}\\)`;
+  }
+
+  if (segment.startsWith("$") && segment.endsWith("$")) {
+    return `$${normalizeFormulaForLatex(segment.slice(1, -1))}$`;
+  }
+
+  return normalizeFormulaForLatex(segment);
+}
+
+function calculationFontSizeCommand(fontSize: CalculationFontSize) {
+  switch (fontSize) {
+    case "small":
+      return "\\small";
+    case "footnotesize":
+      return "\\footnotesize";
+    case "scriptsize":
+      return "\\scriptsize";
+    case "tiny":
+      return "\\tiny";
+    default:
+      return "\\normalsize";
+  }
+}
+
+function renderTextBlockContent(content: string) {
+  const normalized = normalizeTextForLatex(content);
+  const mathPattern = /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\$[^$\n]+\$)/g;
+
+  let out = "";
+  let lastIndex = 0;
+
+  for (const match of normalized.matchAll(mathPattern)) {
+    const start = match.index ?? 0;
+    out += latexEscape(normalized.slice(lastIndex, start));
+    out += normalizeDelimitedMathSegment(match[0]);
+    lastIndex = start + match[0].length;
+  }
+
+  out += latexEscape(normalized.slice(lastIndex));
+
+  return out;
 }
 
 function latexGraphicPath(filename: string) {
@@ -831,9 +958,9 @@ function buildGraphBlock(block: GraphBlock) {
     "grid=both",
     "major grid style={draw=gray!35}",
     "minor grid style={draw=gray!20}",
-    `xlabel={${latexEscape(block.xLabel)}}`,
-    `ylabel={${latexEscape(block.yLabel)}}`,
-    `title={${latexEscape(block.title)}}`
+    `xlabel={${renderTextBlockContent(block.xLabel)}}`,
+    `ylabel={${renderTextBlockContent(block.yLabel)}}`,
+    `title={${renderTextBlockContent(block.title)}}`
   ];
 
   if (block.startAtZero) {
@@ -877,7 +1004,7 @@ function buildGraphBlock(block: GraphBlock) {
           ? `ybar, fill=${latexOptionEscape(item.color)}!55, draw=${latexOptionEscape(item.color)}`
           : `thick, mark=*, color=${latexOptionEscape(item.color)}`;
 
-      const legend = item.label.trim() ? `\n        \\addlegendentry{${latexEscape(item.label)}}` : "";
+      const legend = item.label.trim() ? `\n        \\addlegendentry{${renderTextBlockContent(item.label)}}` : "";
 
       return `        \\addplot+[${plotOptions}] coordinates { ${coordinates} };${legend}`;
     })
@@ -891,7 +1018,7 @@ function buildGraphBlock(block: GraphBlock) {
 ${plots}
       \end{axis}
     \end{tikzpicture}
-    \caption{- ${latexEscape(block.caption)}}
+    \caption{- ${renderTextBlockContent(block.caption)}}
 \end{figure}
 
 `;
@@ -907,6 +1034,8 @@ function buildPreamble() {
 \addto\captionsrussian{\renewcommand{\contentsname}{Оглавление}}
 \usepackage{mathptmx} % шрифт в стиле Times
 \usepackage{caption}
+\usepackage{array}
+\usepackage{tabularx}
 \usepackage{xcolor}
 
 \usepackage{fancyhdr}
@@ -941,6 +1070,9 @@ function buildPreamble() {
 
 \usepackage{setspace}
 \onehalfspacing
+\usepackage{microtype}
+\usepackage{xurl}
+\emergencystretch=3em
 
 \usepackage{indentfirst}
 \setlength{\parindent}{1.25cm}
@@ -981,6 +1113,7 @@ function buildPreamble() {
 \usepackage{siunitx}
 \usepackage{esint}
 \usepackage{icomma}
+\allowdisplaybreaks
 
 \usepackage{fvextra}
 \DefineVerbatimEnvironment{CodeBlock}{Verbatim}{
@@ -1021,63 +1154,73 @@ function buildTitlePage(meta: ReportMeta) {
   const rukFullLabel = meta.rukovoditelDolzhnost
     ? `${meta.rukovoditelLabel} ${meta.rukovoditelDolzhnost}`
     : meta.rukovoditelLabel;
+  const headerSize = titlePageSizeCommand(meta.titlePageHeaderSize);
+  const universitySize = titlePageSizeCommand(meta.titlePageUniversitySize);
+  const kafedraSize = titlePageSizeCommand(meta.titlePageKafedraSize);
+  const workTitleSize = titlePageSizeCommand(meta.titlePageWorkTitleSize);
+  const disciplineSize = titlePageSizeCommand(meta.titlePageDisciplineSize);
+  const codeSize = titlePageSizeCommand(meta.titlePageCodeSize);
+  const signatureLabelSize = titlePageSizeCommand(meta.titlePageSignatureLabelSize);
+  const signatureNameSize = titlePageSizeCommand(meta.titlePageSignatureNameSize);
+  const signNoteSize = titlePageSizeCommand(meta.titlePageSignNoteSize);
+  const footerSize = titlePageSizeCommand(meta.titlePageFooterSize);
 
   return String.raw`
 \begin{titlepage}
 \thispagestyle{empty}
 \begin{center}
-Министерство транспорта Российской Федерации\\
-Федеральное агентство железнодорожного транспорта\\[0.2em]
+{${headerSize} ${latexEscape(meta.ministryLine1)}}\\
+{${headerSize} ${latexEscape(meta.ministryLine2)}}\\[0.2em]
 
-Федеральное государственное бюджетное образовательное учреждение\\
-высшего образования\\
-«Дальневосточный государственный университет путей сообщения»\\[0.2em]
+{${universitySize} ${latexEscape(meta.universityLine1)}}\\
+{${universitySize} ${latexEscape(meta.universityLine2)}}\\
+{${universitySize} ${latexEscape(meta.universityLine3)}}\\[0.2em]
 
-Кафедра «${latexEscape(meta.kafedra)}»
+{${kafedraSize} Кафедра «${latexEscape(meta.kafedra)}»}
 \vfill
 
 {\bfseries
-\large ${latexEscape(meta.tema)}\\[0.3em]
-\large ${latexEscape(meta.vidRaboty)}
+${workTitleSize} ${latexEscape(meta.tema)}\\[0.3em]
+${workTitleSize} ${latexEscape(meta.vidRaboty)}
 }\\[0.3em]
 
-\large дисциплина «${latexEscape(meta.disciplina)}»\\
-\Large ${latexEscape(meta.shapkaStroka)}
-\large
+${disciplineSize} дисциплина «${latexEscape(meta.disciplina)}»\\
+${codeSize} ${latexEscape(meta.shapkaStroka)}
+${signatureLabelSize}
 \vfill
 
 \begin{center}
 \begin{minipage}{\textwidth}
   \setlength{\tabcolsep}{0pt}
   \begin{tabular}{@{}p{4cm}p{9cm}p{4cm}@{}}
-    ${latexEscape(meta.studentLabel)}
+    ${signatureLabelSize} ${latexEscape(meta.studentLabel)}
       & \centering\hrulefill
-      & \centering ${meta.student} \\[0em]
+      & \centering ${signatureNameSize} ${meta.student} \\[0em]
   \end{tabular}
 \end{minipage}
 \end{center}
 
 \vspace{-25pt}
-\small\textit{(подпись, дата)}
-\large
+${signNoteSize}\textit{(подпись, дата)}
+${signatureLabelSize}
 
 \begin{center}
 \begin{minipage}{\textwidth}
   \setlength{\tabcolsep}{0pt}
   \begin{tabular}{@{}p{4cm}p{9cm}p{4cm}@{}}
-    ${latexEscape(rukFullLabel)}
+    ${signatureLabelSize} ${latexEscape(rukFullLabel)}
       & \centering\hrulefill
-      & \centering ${meta.rukovoditel} \\[0em]
+      & \centering ${signatureNameSize} ${meta.rukovoditel} \\[0em]
   \end{tabular}
 \end{minipage}
 \end{center}
 
 \vspace{-20pt}
-\small\textit{(подпись, дата)}
-\normalsize
+${signNoteSize}\textit{(подпись, дата)}
+${footerSize}
 
 \vfill
-\normalsize ${latexEscape(meta.city)} ${latexEscape(String(meta.year))}
+${footerSize} ${latexEscape(meta.city)} ${latexEscape(String(meta.year))}
 \end{center}
 \end{titlepage}
 
@@ -1107,7 +1250,7 @@ function buildBlocks(
 
   blocks.forEach((block) => {
     if (block.type === "text") {
-      out += `\n${latexEscape(block.content)}\n\n`;
+      out += `\n${renderTextBlockContent(block.content)}\n\n`;
       return;
     }
 
@@ -1117,7 +1260,7 @@ function buildBlocks(
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{\detokenize{${graphicPath}}}
-    \caption{- ${latexEscape(block.caption)}}
+    \caption{- ${renderTextBlockContent(block.caption)}}
 \end{figure}
 
 `;
@@ -1128,7 +1271,7 @@ function buildBlocks(
       const currentCodeIndex = counters.code++;
       const normalizedCode = normalizeCodeForLatex(block.code);
       out += String.raw`
-\noindent\textbf{Код ${currentCodeIndex} - ${latexEscape(block.caption)}}\par
+\noindent\textbf{Код ${currentCodeIndex} - ${renderTextBlockContent(block.caption)}}\par
 \smallskip
 \begin{CodeBlock}
 ` + normalizedCode + String.raw`
@@ -1141,12 +1284,15 @@ function buildBlocks(
     if (block.type === "calculation") {
       const currentCalculationIndex = counters.calculation++;
       const normalizedFormula = normalizeFormulaForLatex(block.formula);
+      const fontSizeCommand = calculationFontSizeCommand(block.fontSize);
       out += String.raw`
-\noindent\textbf{Расчёт ${currentCalculationIndex} - ${latexEscape(block.caption)}}\par
+\noindent\textbf{Расчёт ${currentCalculationIndex} - ${renderTextBlockContent(block.caption)}}\par
 \smallskip
+{${fontSizeCommand}
 \begin{${block.environment}}
 ` + normalizedFormula + String.raw`
 \end{${block.environment}}
+}
 
 `;
       return;
@@ -1154,6 +1300,7 @@ function buildBlocks(
 
     if (block.type === "table") {
       const currentTableIndex = counters.table++;
+      const fontSizeCommand = calculationFontSizeCommand(block.fontSize);
       const rows = block.data
         .split("\n")
         .map((row) => row.trim())
@@ -1171,24 +1318,34 @@ function buildBlocks(
       if (colCount <= 0) colCount = 1;
 
       const colSpec = `|${Array.from({ length: colCount }, () => "c|").join("")}`;
+      const wrappedColSpec = `|${Array.from(
+        { length: colCount },
+        () => ">{\\raggedright\\arraybackslash}X|"
+      ).join("")}`;
+      const shouldWrapCells = block.wrapCells;
+      const shouldScaleTable = block.fitToWidth && !shouldWrapCells;
 
       out += String.raw`
 \begin{table}[H]
-\caption*{\hfill \textbf{Таблица ${currentTableIndex} - ${latexEscape(block.caption)}}}
+\caption*{\hfill \textbf{Таблица ${currentTableIndex} - ${renderTextBlockContent(block.caption)}}}
 \centering
-\begin{tabular}{${colSpec}}
+{${fontSizeCommand}
+` + (shouldScaleTable ? String.raw`\resizebox{\textwidth}{!}{%
+` : "") + String.raw`
+\begin{${shouldWrapCells ? "tabularx" : "tabular"}}${shouldWrapCells ? "{\\textwidth}" : ""}{${shouldWrapCells ? wrappedColSpec : colSpec}}
 \hline
 `;
 
       rows.forEach((row) => {
-        const cells = row.split(";").map((cell) => latexEscape(cell.trim()));
+        const cells = row.split(";").map((cell) => renderTextBlockContent(cell.trim()));
         const padded = Array.from({ length: colCount }, (_, index) => cells[index] || "");
 
         out += padded.join(" & ") + String.raw` \\` + "\n";
         out += "\\hline\n";
       });
 
-      out += String.raw`\end{tabular}
+      out += String.raw`\end{${shouldWrapCells ? "tabularx" : "tabular"}}
+` + (shouldScaleTable ? "}\n" : "") + String.raw`}
 \end{table}
 
 `;
@@ -1212,11 +1369,11 @@ function buildBlocks(
         if (!label && !description) return;
 
         if (label && description) {
-          out += `\\item ${latexEscape(label)}${String.raw`\\`}\n${latexEscape(description)}\n`;
+          out += `\\item ${renderTextBlockContent(label)}${String.raw`\\`}\n${renderTextBlockContent(description)}\n`;
           return;
         }
 
-        out += `\\item ${latexEscape(label || description)}\n`;
+        out += `\\item ${renderTextBlockContent(label || description)}\n`;
       });
 
       out += `\\end{${tag}}\n\n`;
@@ -1244,8 +1401,8 @@ function buildBody(sections: ReportSection[]) {
 
     const cmd = section.level === 0 ? "section" : section.level === 1 ? "subsection" : "subsubsection";
 
-    out += `\\${cmd}*{${latexEscape(title)}}\n`;
-    out += `\\addcontentsline{toc}{${cmd}}{${latexEscape(title)}}\n\n`;
+    out += `\\${cmd}*{${renderTextBlockContent(title)}}\n`;
+    out += `\\addcontentsline{toc}{${cmd}}{${renderTextBlockContent(title)}}\n\n`;
     out += buildBlocks(section.blocks, counters);
   });
 
@@ -1283,12 +1440,29 @@ function normalizeBlock(block: ReportBlock): ReportBlock {
       code?: string;
       formula?: string;
       environment?: CalculationEnvironment;
+      fontSize?: CalculationFontSize;
     };
 
     return {
       ...legacyBlock,
       environment: legacyBlock.environment ?? "equation*",
+      fontSize: legacyBlock.fontSize ?? "normalsize",
       formula: legacyBlock.formula ?? legacyBlock.code ?? ""
+    };
+  }
+
+  if (block.type === "table") {
+    const legacyBlock = block as TableBlock & {
+      fontSize?: CalculationFontSize;
+      fitToWidth?: boolean;
+      wrapCells?: boolean;
+    };
+
+    return {
+      ...legacyBlock,
+      fontSize: legacyBlock.fontSize ?? "normalsize",
+      fitToWidth: legacyBlock.fitToWidth ?? false,
+      wrapCells: legacyBlock.wrapCells ?? true
     };
   }
 

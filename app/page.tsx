@@ -25,6 +25,7 @@ import {
   type ReportSection,
   type SectionLevel,
   type TableBlock,
+  type TitlePageFontSize,
   type TextBlock
 } from "@/lib/report";
 
@@ -71,6 +72,59 @@ const metaFields: Array<{
   { key: "year", label: "Год", type: "number" }
 ];
 
+const titlePageTextFields: Array<{
+  key:
+    | "ministryLine1"
+    | "ministryLine2"
+    | "universityLine1"
+    | "universityLine2"
+    | "universityLine3";
+  label: string;
+  wide?: boolean;
+}> = [
+  { key: "ministryLine1", label: "Первая строка шапки", wide: true },
+  { key: "ministryLine2", label: "Вторая строка шапки", wide: true },
+  { key: "universityLine1", label: "Первая строка вуза", wide: true },
+  { key: "universityLine2", label: "Вторая строка вуза", wide: true },
+  { key: "universityLine3", label: "Третья строка вуза", wide: true }
+];
+
+const titlePageSizeLabels: Record<TitlePageFontSize, string> = {
+  small: "Мелкий",
+  normalsize: "Обычный",
+  large: "Крупный",
+  Large: "Очень крупный",
+  LARGE: "Максимальный",
+  huge: "Huge",
+  Huge: "Huge+"
+};
+
+const titlePageSizeFields: Array<{
+  key:
+    | "titlePageHeaderSize"
+    | "titlePageUniversitySize"
+    | "titlePageKafedraSize"
+    | "titlePageWorkTitleSize"
+    | "titlePageDisciplineSize"
+    | "titlePageCodeSize"
+    | "titlePageSignatureLabelSize"
+    | "titlePageSignatureNameSize"
+    | "titlePageSignNoteSize"
+    | "titlePageFooterSize";
+  label: string;
+}> = [
+  { key: "titlePageHeaderSize", label: "Размер шапки" },
+  { key: "titlePageUniversitySize", label: "Размер блока вуза" },
+  { key: "titlePageKafedraSize", label: "Размер кафедры" },
+  { key: "titlePageWorkTitleSize", label: "Размер названия работы" },
+  { key: "titlePageDisciplineSize", label: "Размер дисциплины" },
+  { key: "titlePageCodeSize", label: "Размер шифра / группы" },
+  { key: "titlePageSignatureLabelSize", label: "Размер подписей слева" },
+  { key: "titlePageSignatureNameSize", label: "Размер ФИО справа" },
+  { key: "titlePageSignNoteSize", label: "Размер подписи/даты" },
+  { key: "titlePageFooterSize", label: "Размер города и года" }
+];
+
 const graphPreviewColors: Record<string, string> = {
   teal: "#4fd0b0",
   blue: "#74a7ff",
@@ -86,14 +140,27 @@ const calculationEnvironmentLabels: Record<CalculationBlock["environment"], stri
   "align*": "Несколько строк без номеров",
   align: "Несколько строк с номерами",
   "gather*": "Строки по центру без номеров",
-  gather: "Строки по центру с номерами"
+  gather: "Строки по центру с номерами",
+  "multline*": "Длинная формула без номера",
+  multline: "Длинная формула с номером"
 };
+
+const calculationFontSizeLabels: Record<CalculationBlock["fontSize"], string> = {
+  normalsize: "Обычный",
+  small: "Меньше",
+  footnotesize: "Маленький",
+  scriptsize: "Очень маленький",
+  tiny: "Минимальный"
+};
+
+const tableFontSizeLabels = calculationFontSizeLabels;
 
 const calculationInsertTemplates = [
   { label: "frac", template: String.raw`\frac{__CURSOR__}{}` },
   { label: "sqrt", template: String.raw`\sqrt{__CURSOR__}` },
   { label: "^{}", template: String.raw`x^{__CURSOR__}` },
   { label: "_{}", template: String.raw`x_{__CURSOR__}` },
+  { label: "\\\\", template: "\\\\\n" },
   { label: "sum", template: String.raw`\sum_{i=1}^{n} __CURSOR__` },
   { label: "int", template: String.raw`\int_{a}^{b} __CURSOR__ \, dx` },
   { label: "lim", template: String.raw`\lim_{x \to \infty} __CURSOR__` },
@@ -558,7 +625,7 @@ export default function Home() {
     const payload = {
       app: "MakeTexChigga",
       kind: capabilitiesFileKind,
-      version: 2,
+      version: 7,
       draft: capabilitiesDraft,
       generatedAt: new Date().toISOString(),
       purpose: "Редактор отчетов с генерацией LaTeX и локальной сборкой PDF.",
@@ -567,8 +634,43 @@ export default function Home() {
         latex_export: "tex",
         pdf_export: "pdf"
       },
+      titlePageControls: {
+        editableTextFields: [
+          "ministryLine1",
+          "ministryLine2",
+          "universityLine1",
+          "universityLine2",
+          "universityLine3",
+          "kafedra",
+          "tema",
+          "vidRaboty",
+          "disciplina",
+          "shapkaStroka",
+          "studentLabel",
+          "rukovoditelLabel",
+          "rukovoditelDolzhnost",
+          "student",
+          "rukovoditel",
+          "city",
+          "year"
+        ],
+        fontSizeFields: [
+          "titlePageHeaderSize",
+          "titlePageUniversitySize",
+          "titlePageKafedraSize",
+          "titlePageWorkTitleSize",
+          "titlePageDisciplineSize",
+          "titlePageCodeSize",
+          "titlePageSignatureLabelSize",
+          "titlePageSignatureNameSize",
+          "titlePageSignNoteSize",
+          "titlePageFooterSize"
+        ],
+        fontSizeOptions: ["small", "normalsize", "large", "Large", "LARGE", "huge", "Huge"]
+      },
       features: {
         titlePage: true,
+        titlePageTemplateEditing: "default university layout with editable text lines and font sizes",
         headingNumbering: "automatic with optional disable per section",
         sectionInsertion: "after selected section",
         sectionSelection: true,
@@ -580,6 +682,11 @@ export default function Home() {
         localAutosave: true,
         projectImportExport: true,
         graphPreview: "inline SVG preview in editor before TEX/PDF generation",
+        inlineMathInTextBlocks: true,
+        tableMathSupport: true,
+        tableSizingControl: true,
+        tableCellWrapping: true,
+        calculationFontSizeControl: true,
         overleafShortcut: true,
         localPdfCompilation: "requires pdflatex / MiKTeX / TeX Live"
       },
@@ -603,13 +710,37 @@ export default function Home() {
             type: "calculation",
             displayName: "Расчёты",
             purpose: "Блок формул и математических вычислений",
-            fields: ["caption", "environment", "formula"],
-            environmentOptions: ["equation*", "equation", "align*", "align", "gather*", "gather"]
+            fields: ["caption", "environment", "fontSize", "formula"],
+            environmentOptions: [
+              "equation*",
+              "equation",
+              "align*",
+              "align",
+              "gather*",
+              "gather",
+              "multline*",
+              "multline"
+            ],
+            fontSizeOptions: ["normalsize", "small", "footnotesize", "scriptsize", "tiny"],
+            inlineMathInText:
+              "Text blocks support inline formulas via $...$, \\(...\\) and display blocks via \\[...\\].",
+            overflowGuidance: [
+              "For long single formulas prefer multline* or multline.",
+              "For multi-step derivations prefer align* or align and split with \\\\.",
+              "If the formula still does not fit, reduce fontSize to small, footnotesize or scriptsize."
+            ]
           },
         {
           type: "table",
           purpose: "Таблица из строк и ячеек, разделенных ;",
-          fields: ["caption", "cols", "data"]
+          fields: ["caption", "cols", "fontSize", "fitToWidth", "wrapCells", "data"],
+          fontSizeOptions: ["normalsize", "small", "footnotesize", "scriptsize", "tiny"],
+          inlineMathInCells:
+            "Table captions and cells support inline formulas via $...$, \\(...\\) and display math via \\[...\\].",
+          unicodeMathHint:
+            "Inside math delimiters common Unicode symbols like μ, ∩, ≤, α, ∞ are converted to LaTeX automatically.",
+          layoutGuidance:
+            "Use fontSize to shrink wide tables, fitToWidth=true to scale the whole table to printable page width, and wrapCells=true to enable automatic line wrapping in cells."
         },
         {
           type: "graph",
@@ -635,6 +766,21 @@ export default function Home() {
           "Сначала определить структуру разделов",
           "Потом наполнить блоки текстом, кодом, расчётами, таблицами и графиками",
           "После этого сгенерировать TEX или PDF"
+        ],
+        formulaGuidance: [
+          "Inline formulas inside text blocks must be wrapped with $...$.",
+          "Long formulas should use multline* or align* instead of a single long equation line.",
+          "Use the calculation fontSize field when a formula is slightly wider than the printable area."
+        ],
+        tableGuidance: [
+          "Table cells may contain inline math like $\\mu_A(x)$ or $X \\cap Y$.",
+          "Use semicolon ; only as a cell separator, not inside the formula text unless escaped or rewritten.",
+          "For wide tables, reduce fontSize, enable fitToWidth, or turn on wrapCells for automatic line wrapping."
+        ],
+        titlePageGuidance: [
+          "The default title page layout should be preserved unless the user asks for a custom composition.",
+          "The main title page text lines are editable through meta.ministryLine1, meta.ministryLine2, meta.universityLine1, meta.universityLine2 and meta.universityLine3.",
+          "Font sizing for title-page zones is controlled by titlePageHeaderSize, titlePageUniversitySize, titlePageKafedraSize, titlePageWorkTitleSize, titlePageDisciplineSize, titlePageCodeSize, titlePageSignatureLabelSize, titlePageSignatureNameSize, titlePageSignNoteSize and titlePageFooterSize."
         ]
       }
     };
@@ -821,6 +967,42 @@ export default function Home() {
               />
             </label>
           ))}
+          <div className="meta-subsection wide">
+            <div className="meta-subsection-header">
+              <strong>Гибкий шаблон титульника</strong>
+              <p>
+                По умолчанию остаётся ваш университетский макет. Ниже можно менять строки шапки и размеры отдельных
+                зон без ручной правки LaTeX.
+              </p>
+            </div>
+            <div className="meta-subgrid">
+              {titlePageTextFields.map((field) => (
+                <label className={field.wide ? "field wide" : "field"} key={field.key}>
+                  <span>{field.label}</span>
+                  <input
+                    type="text"
+                    value={String(draft.meta[field.key])}
+                    onChange={(event) => updateMeta(field.key, event.target.value)}
+                  />
+                </label>
+              ))}
+              {titlePageSizeFields.map((field) => (
+                <label className="field" key={field.key}>
+                  <span>{field.label}</span>
+                  <select
+                    value={draft.meta[field.key]}
+                    onChange={(event) => updateMeta(field.key, event.target.value as TitlePageFontSize)}
+                  >
+                    {Object.entries(titlePageSizeLabels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label} ({value})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+          </div>
           <label className="toggle-field wide">
             <input
               type="checkbox"
@@ -1121,9 +1303,9 @@ function getBlockSearchText(block: ReportBlock) {
     case "code":
       return `${block.caption} ${block.code}`;
     case "calculation":
-      return `${block.caption} ${block.environment} ${block.formula}`;
+      return `${block.caption} ${block.environment} ${block.fontSize} ${block.formula}`;
     case "table":
-      return `${block.caption} ${block.cols} ${block.data}`;
+      return `${block.caption} ${block.cols} ${block.fontSize} ${block.fitToWidth} ${block.wrapCells} ${block.data}`;
     case "graph":
       return `${block.caption} ${block.title} ${block.xLabel} ${block.yLabel} ${block.mode} ${block.series
         .map((series) => `${series.label} ${series.color} ${series.points}`)
@@ -1527,7 +1709,8 @@ function BlockEditor({
       </div>
 
       {block.type === "text" && (
-        <label className="field">
+        <>
+          <label className="field">
           <span>Текст раздела</span>
           <textarea
             className="large-textarea"
@@ -1539,7 +1722,11 @@ function BlockEditor({
               )
             }
           />
-        </label>
+          </label>
+          <p className="inline-note">
+            В обычном тексте поддерживаются inline-формулы через `$...$`, `\\(...\\)` и отдельные блоки через `\\[...\\]`.
+          </p>
+        </>
       )}
 
       {block.type === "figure" && (
@@ -1634,6 +1821,25 @@ function BlockEditor({
                 ))}
               </select>
             </label>
+            <label className="field">
+              <span>Размер формулы</span>
+              <select
+                value={(block as CalculationBlock).fontSize}
+                onChange={(event) =>
+                  onUpdate((current) =>
+                    current.type === "calculation"
+                      ? { ...current, fontSize: event.target.value as CalculationBlock["fontSize"] }
+                      : current
+                  )
+                }
+              >
+                {Object.entries(calculationFontSizeLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
           <div className="formula-toolbar">
@@ -1667,6 +1873,7 @@ function BlockEditor({
           <p className="inline-note">
             Поддерживаются `amsmath`, `amssymb`, `mathtools`, `mathrsfs`, `bm`, `cancel`, `siunitx`, `esint` и другие
             математические пакеты. Частые Unicode-символы вроде `√`, `∩`, `≤`, `α`, `∞` автоматически переводятся в LaTeX.
+            Для длинных выражений удобнее выбирать `multline*` или `align*`, разбивать формулу через `\\` и при необходимости уменьшать размер.
           </p>
         </>
       )}
@@ -1697,7 +1904,50 @@ function BlockEditor({
                 }
               />
             </label>
+            <label className="field">
+              <span>Размер таблицы</span>
+              <select
+                value={(block as TableBlock).fontSize}
+                onChange={(event) =>
+                  onUpdate((current) =>
+                    current.type === "table"
+                      ? { ...current, fontSize: event.target.value as TableBlock["fontSize"] }
+                      : current
+                  )
+                }
+              >
+                {Object.entries(tableFontSizeLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
+          <label className="toggle-field wide">
+            <input
+              type="checkbox"
+              checked={(block as TableBlock).fitToWidth}
+              onChange={(event) =>
+                onUpdate((current) =>
+                  current.type === "table" ? { ...current, fitToWidth: event.target.checked } : current
+                )
+              }
+            />
+            <span>Вписать таблицу по ширине страницы</span>
+          </label>
+          <label className="toggle-field wide">
+            <input
+              type="checkbox"
+              checked={(block as TableBlock).wrapCells}
+              onChange={(event) =>
+                onUpdate((current) =>
+                  current.type === "table" ? { ...current, wrapCells: event.target.checked } : current
+                )
+              }
+            />
+            <span>Автоматически переносить длинный текст в ячейках</span>
+          </label>
           <label className="field">
             <span>Данные таблицы</span>
             <textarea
@@ -1709,6 +1959,11 @@ function BlockEditor({
               }
             />
           </label>
+          <p className="inline-note">
+            В ячейках и подписи таблицы можно писать inline-формулы через `$...$` или `\\(...\\)`, например:
+            `$\mu_A(x)$`, `$X \cap Y$`, `$\rho_E$`. Частые Unicode-символы внутри формулы тоже переводятся в LaTeX.
+            Если таблица широкая, уменьшите размер, включите вписывание по ширине или автоперенос ячеек.
+          </p>
         </>
       )}
 
