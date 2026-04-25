@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MakeTexChigga",
-  description: "Редактор отчетов с генерацией LaTeX"
+  title: "tex.bostoncrew.ru",
+  description: "ASCII-редактор отчётов с генерацией LaTeX"
 };
 
 export default function RootLayout({

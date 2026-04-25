@@ -29,8 +29,10 @@ import {
   type TextBlock
 } from "@/lib/report";
 
+const appName = "tex.bostoncrew.ru";
+const legacyAppNames = ["MakeTexChigga", "tex-report-forge", appName];
 const storageKey = "tex-report-forge-draft";
-const projectFileApp = "tex-report-forge";
+const projectFileApp = appName;
 const projectFileVersion = 1;
 const projectFileKind = "project";
 const capabilitiesFileKind = "project-capabilities";
@@ -182,6 +184,64 @@ __CURSOR__
 __CURSOR__
 \end{cases}` }
 ];
+
+const textInsertGroups = [
+  {
+    title: "Быстрые формулы",
+    items: [
+      { label: "$...$", template: "$__CURSOR__$" },
+      { label: "\\(...\\)", template: String.raw`\(__CURSOR__\)` },
+      { label: "\\[...\\]", template: String.raw`\[
+__CURSOR__
+\]` },
+      { label: "\\frac", template: String.raw`$\frac{__CURSOR__}{}$` },
+      { label: "\\sqrt", template: String.raw`$\sqrt{__CURSOR__}$` },
+      { label: "индекс", template: String.raw`$x_{__CURSOR__}$` },
+      { label: "степень", template: String.raw`$x^{__CURSOR__}$` }
+    ]
+  },
+  {
+    title: "Логика и множества",
+    items: [
+      { label: "\\mu", template: String.raw`$\mu_{__CURSOR__}(x)$` },
+      { label: "\\rho", template: String.raw`$\rho_{__CURSOR__}$` },
+      { label: "\\cap", template: String.raw`$A \cap B$` },
+      { label: "\\cup", template: String.raw`$A \cup B$` },
+      { label: "\\subseteq", template: String.raw`$A \subseteq B$` },
+      { label: "\\in", template: String.raw`$x \in A$` },
+      { label: "\\forall", template: String.raw`$\forall x \in X$` },
+      { label: "\\exists", template: String.raw`$\exists x$` }
+    ]
+  },
+  {
+    title: "Греческие и знаки",
+    items: [
+      { label: "\\alpha", template: String.raw`$\alpha$` },
+      { label: "\\beta", template: String.raw`$\beta$` },
+      { label: "\\gamma", template: String.raw`$\gamma$` },
+      { label: "\\Delta", template: String.raw`$\Delta$` },
+      { label: "\\approx", template: String.raw`$\approx$` },
+      { label: "\\leq", template: String.raw`$\leq$` },
+      { label: "\\geq", template: String.raw`$\geq$` },
+      { label: "\\infty", template: String.raw`$\infty$` }
+    ]
+  },
+  {
+    title: "Полезные вставки",
+    items: [
+      { label: "\\textbf", template: String.raw`\textbf{__CURSOR__}` },
+      { label: "\\emph", template: String.raw`\emph{__CURSOR__}` },
+      { label: "align*", template: String.raw`\[
+\begin{align*}
+__CURSOR__
+\end{align*}
+\]` },
+      { label: "перенос", template: "\\\\\n" },
+      { label: "маркер", template: "• __CURSOR__" },
+      { label: "стрелка", template: String.raw`$\Rightarrow$` }
+    ]
+  }
+] as const;
 
 export default function Home() {
   const [draft, setDraft] = useState<ReportDraft>(() => createInitialDraft());
@@ -623,9 +683,9 @@ export default function Home() {
   function downloadCapabilitiesJson() {
     const capabilitiesDraft = createCapabilitiesDraft();
     const payload = {
-      app: "MakeTexChigga",
+      app: appName,
       kind: capabilitiesFileKind,
-      version: 7,
+      version: 8,
       draft: capabilitiesDraft,
       generatedAt: new Date().toISOString(),
       purpose: "Редактор отчетов с генерацией LaTeX и локальной сборкой PDF.",
@@ -671,6 +731,8 @@ export default function Home() {
       features: {
         titlePage: true,
         titlePageTemplateEditing: "default university layout with editable text lines and font sizes",
+        textInsertPalette: "modal keyboard for formulas, symbols and common LaTeX snippets inside text blocks",
+        newcomerTutorial: true,
         headingNumbering: "automatic with optional disable per section",
         sectionInsertion: "after selected section",
         sectionSelection: true,
@@ -763,12 +825,13 @@ export default function Home() {
         summary:
           "Если этот JSON отправляется в нейросеть, она должна понимать структуру приложения и помогать заполнять разделы, блоки, графики и титульный лист без нарушения схемы.",
         recommendedWorkflow: [
-          "Сначала определить структуру разделов",
-          "Потом наполнить блоки текстом, кодом, расчётами, таблицами и графиками",
-          "После этого сгенерировать TEX или PDF"
+          "Сначала использовать AI-чат для черновой структуры и содержания",
+          "Потом сгенерировать и импортировать .json проекта",
+          "После этого доправить документ в редакторе и собрать TEX или PDF"
         ],
         formulaGuidance: [
           "Inline formulas inside text blocks must be wrapped with $...$.",
+          "Use the text-block insert palette when you need formulas, greek letters, set symbols or ready-made LaTeX snippets.",
           "Long formulas should use multline* or align* instead of a single long equation line.",
           "Use the calculation fontSize field when a formula is slightly wider than the printable area."
         ],
@@ -781,6 +844,12 @@ export default function Home() {
           "The default title page layout should be preserved unless the user asks for a custom composition.",
           "The main title page text lines are editable through meta.ministryLine1, meta.ministryLine2, meta.universityLine1, meta.universityLine2 and meta.universityLine3.",
           "Font sizing for title-page zones is controlled by titlePageHeaderSize, titlePageUniversitySize, titlePageKafedraSize, titlePageWorkTitleSize, titlePageDisciplineSize, titlePageCodeSize, titlePageSignatureLabelSize, titlePageSignatureNameSize, titlePageSignNoteSize and titlePageFooterSize."
+        ],
+        onboarding: [
+          "1. Use an AI chat to draft the work.",
+          "2. Give the AI the capabilities.json file so it understands the editor schema.",
+          "3. Ask the AI for a .json project file and import it into the editor.",
+          "4. Polish the draft, export .tex and continue in Overleaf when needed."
         ]
       }
     };
@@ -792,7 +861,7 @@ export default function Home() {
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = "make-tex-chigga-capabilities.json";
+    link.download = "tex-bostoncrew-ru-capabilities.json";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -815,7 +884,7 @@ export default function Home() {
     const date = new Date().toISOString().slice(0, 10);
 
     link.href = url;
-    link.download = `tex-report-project-${date}.json`;
+    link.download = `tex-bostoncrew-project-${date}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -880,9 +949,9 @@ export default function Home() {
     <main className="app-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">LaTeX report forge</p>
-          <h1>MakeTexChigga</h1>
-          <p className="subtitle">Большой редактор отчёта без тесного окошка и ручной сборки шаблона.</p>
+          <p className="eyebrow">&gt; ascii report shell</p>
+          <h1>{appName}</h1>
+          <p className="subtitle">Редактор отчётов и .tex без лишнего шума.</p>
         </div>
         <div className="topbar-actions">
           <button className="button primary" type="button" onClick={generateTex}>
@@ -932,6 +1001,19 @@ export default function Home() {
         </div>
       </header>
 
+      <details className="guide-panel">
+        <summary>
+          <span>Как начать</span>
+          <small>4 шага для новичка</small>
+        </summary>
+        <ol className="guide-list">
+          <li>Используй AI-чат, чтобы набросать структуру и содержание работы.</li>
+          <li>Передай чату `capabilities.json`, чтобы он понял правила JSON и блоков.</li>
+          <li>Попроси у чата готовый `.json` проекта и загрузи его сюда.</li>
+          <li>Подправь документ, собери `.tex` и переходи в Overleaf.</li>
+        </ol>
+      </details>
+
       <section className="summary-band" aria-label="Сводка">
         <div>
           <span>{draft.sections.length}</span>
@@ -953,8 +1035,8 @@ export default function Home() {
 
       <details className="meta-panel" open>
         <summary>
-          <span>Титульный лист</span>
-          <small>шапка, подписи, город, год</small>
+          <span>Титульник</span>
+          <small>шаблон + поля</small>
         </summary>
         <div className="meta-grid">
           {metaFields.map((field) => (
@@ -1018,10 +1100,7 @@ export default function Home() {
         <aside className="side-panel">
           <div className="side-panel-inner">
             <h2>Разделы</h2>
-            <p>
-              Выберите раздел, и новые разделы будут вставляться сразу после него. Сами блоки редактируются на всю
-              ширину страницы.
-            </p>
+            <p>Новые разделы вставляются после выбранного.</p>
 
             <label className="field search-field">
               <span>Глобальный поиск</span>
@@ -1035,7 +1114,7 @@ export default function Home() {
             <p className="search-hint">
               {searchQuery.trim()
                 ? `Найдено разделов: ${filteredSections.length} из ${draft.sections.length}`
-                : "Поиск идёт по заголовкам, тексту, коду, расчётам, таблицам, графикам и спискам."}
+                : "Поиск по заголовкам и содержимому."}
             </p>
 
             <div className="level-picker" role="group" aria-label="Текущий уровень раздела">
@@ -1377,7 +1456,8 @@ function isCapabilitiesExportFile(value: unknown) {
   }
 
   return (
-    value.app === "MakeTexChigga" &&
+    typeof value.app === "string" &&
+    legacyAppNames.includes(value.app) &&
     isRecord(value.features) &&
     Array.isArray(value.blockTypes) &&
     isRecord(value.neuralInstructions)
@@ -1660,6 +1740,8 @@ function BlockEditor({
   onUpdateListItem: (itemId: string, patch: Partial<{ label: string; text: string }>) => void;
 }) {
   const calculationTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const textTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isTextInsertOpen, setIsTextInsertOpen] = useState(false);
 
   function insertCalculationTemplate(template: string) {
     if (block.type !== "calculation") return;
@@ -1675,6 +1757,27 @@ function BlockEditor({
     onUpdate((current) =>
       current.type === "calculation" ? { ...current, formula: nextFormula } : current
     );
+
+    window.requestAnimationFrame(() => {
+      if (!textarea) return;
+      const cursorOffset = template.includes(marker) ? template.indexOf(marker) : insertion.length;
+      const cursorPosition = selectionStart + Math.max(cursorOffset, 0);
+      textarea.focus();
+      textarea.setSelectionRange(cursorPosition, cursorPosition);
+    });
+  }
+
+  function insertTextTemplate(template: string) {
+    if (block.type !== "text") return;
+
+    const textarea = textTextareaRef.current;
+    const marker = "__CURSOR__";
+    const selectionStart = textarea?.selectionStart ?? block.content.length;
+    const selectionEnd = textarea?.selectionEnd ?? block.content.length;
+    const insertion = template.replace(marker, "");
+    const nextContent = block.content.slice(0, selectionStart) + insertion + block.content.slice(selectionEnd);
+
+    onUpdate((current) => (current.type === "text" ? { ...current, content: nextContent } : current));
 
     window.requestAnimationFrame(() => {
       if (!textarea) return;
@@ -1710,22 +1813,66 @@ function BlockEditor({
 
       {block.type === "text" && (
         <>
+          <div className="text-tools">
+            <button className="chip-button" type="button" onClick={() => setIsTextInsertOpen(true)}>
+              Вставки
+            </button>
+            <span className="inline-note">Формулы, символы и шпаргалка.</span>
+          </div>
           <label className="field">
-          <span>Текст раздела</span>
-          <textarea
-            className="large-textarea"
-            placeholder="Пишите текст отчёта здесь. Для принудительного переноса в LaTeX можно использовать \\\\."
-            value={(block as TextBlock).content}
-            onChange={(event) =>
-              onUpdate((current) =>
-                current.type === "text" ? { ...current, content: event.target.value } : current
-              )
-            }
-          />
+            <span>Текст</span>
+            <textarea
+              ref={textTextareaRef}
+              className="large-textarea"
+              placeholder="Основной текст раздела."
+              value={(block as TextBlock).content}
+              onChange={(event) =>
+                onUpdate((current) =>
+                  current.type === "text" ? { ...current, content: event.target.value } : current
+                )
+              }
+            />
           </label>
-          <p className="inline-note">
-            В обычном тексте поддерживаются inline-формулы через `$...$`, `\\(...\\)` и отдельные блоки через `\\[...\\]`.
-          </p>
+          <p className="inline-note">Поддерживаются `$...$`, `\\(...\\)` и `\\[...\\]`.</p>
+          {isTextInsertOpen ? (
+            <div className="overlay-backdrop" onClick={() => setIsTextInsertOpen(false)}>
+              <div
+                aria-modal="true"
+                className="insert-modal"
+                role="dialog"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="insert-modal-head">
+                  <div>
+                    <strong>Вставки в текст</strong>
+                    <p>Вставка идёт в место курсора.</p>
+                  </div>
+                  <button className="mini-button" type="button" onClick={() => setIsTextInsertOpen(false)}>
+                    Закрыть
+                  </button>
+                </div>
+                <div className="insert-groups">
+                  {textInsertGroups.map((group) => (
+                    <section className="insert-group" key={group.title}>
+                      <strong>{group.title}</strong>
+                      <div className="insert-chips">
+                        {group.items.map((item) => (
+                          <button
+                            className="chip-button"
+                            key={`${group.title}-${item.label}`}
+                            type="button"
+                            onClick={() => insertTextTemplate(item.template)}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
         </>
       )}
 
@@ -1777,7 +1924,7 @@ function BlockEditor({
             <span>Код</span>
             <textarea
               className="code-textarea"
-              placeholder="Сюда можно вставлять код как есть."
+              placeholder="Код."
               value={(block as CodeBlock).code}
               onChange={(event) =>
                 onUpdate((current) => (current.type === "code" ? { ...current, code: event.target.value } : current))
@@ -1871,9 +2018,8 @@ function BlockEditor({
           </label>
 
           <p className="inline-note">
-            Поддерживаются `amsmath`, `amssymb`, `mathtools`, `mathrsfs`, `bm`, `cancel`, `siunitx`, `esint` и другие
-            математические пакеты. Частые Unicode-символы вроде `√`, `∩`, `≤`, `α`, `∞` автоматически переводятся в LaTeX.
-            Для длинных выражений удобнее выбирать `multline*` или `align*`, разбивать формулу через `\\` и при необходимости уменьшать размер.
+            Для длинных выражений лучше `multline*` или `align*`. Unicode-символы вроде `√`, `∩`, `≤`, `α`, `∞`
+            тоже переводятся.
           </p>
         </>
       )}
@@ -1960,9 +2106,7 @@ function BlockEditor({
             />
           </label>
           <p className="inline-note">
-            В ячейках и подписи таблицы можно писать inline-формулы через `$...$` или `\\(...\\)`, например:
-            `$\mu_A(x)$`, `$X \cap Y$`, `$\rho_E$`. Частые Unicode-символы внутри формулы тоже переводятся в LaTeX.
-            Если таблица широкая, уменьшите размер, включите вписывание по ширине или автоперенос ячеек.
+            В ячейках работают `$...$` и `\\(...\\)`. Если широко, уменьшите размер, включите вписывание или перенос.
           </p>
         </>
       )}
@@ -2107,8 +2251,7 @@ function BlockEditor({
             + Серия
           </button>
           <p className="inline-note">
-            Можно накладывать несколько серий на одну систему координат. Формат данных для каждой серии: одна строка —
-            одна точка, `X;Y`.
+            Формат точек: одна строка = одна точка, `X;Y`.
           </p>
         </>
       )}

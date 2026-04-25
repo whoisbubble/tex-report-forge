@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#0c0c0c"/>
+  <rect x="4" y="4" width="56" height="56" fill="none" stroke="#dbc78f" stroke-width="2" stroke-dasharray="4 3"/>
+  <text
+    x="50%"
+    y="52%"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    fill="#ede4c8"
+    font-family="IBM Plex Mono, Cascadia Code, monospace"
+    font-size="24"
+    font-weight="700"
+  >t&gt;</text>
+</svg>
