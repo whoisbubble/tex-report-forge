@@ -12,6 +12,7 @@ export type FigureBlock = {
   type: "figure";
   filename: string;
   caption: string;
+  imageData?: string;
 };
 
 export type CodeBlock = {
@@ -199,7 +200,8 @@ export function createBlock(type: ReportBlock["type"], figureIndex = 1): ReportB
       id: makeId("block"),
       type,
       filename: `ris${figureIndex}.png`,
-      caption: ""
+      caption: "",
+      imageData: ""
     };
   }
 
@@ -568,12 +570,13 @@ export function createCapabilitiesDraft(): ReportDraft {
             id: "block-cap-figure-text",
             type: "text",
             content:
-              "Figure blocks reference an external file from the images directory and provide a caption for LaTeX."
+              "Figure blocks can reference a file inside the images directory for Overleaf, or carry an embedded image payload for local PDF compilation directly from the project JSON."
           },
           {
             id: "block-cap-figure",
             type: "figure",
-            filename: "images/architecture-example.png",
+            filename: "architecture-example.png",
+            imageData: "",
             caption: "Example architecture diagram used by the figure block"
           }
         ]
@@ -745,6 +748,10 @@ function normalizeTextForLatex(text: string) {
     .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "");
 }
 
+function normalizePlainTextSegmentForLatex(text: string) {
+  return text.replace(/(?<=[A-Za-zА-Яа-я0-9_:])\\(?=[A-Za-zА-Яа-я0-9_])/g, "/");
+}
+
 const unicodeMathReplacements: Array<[RegExp, string]> = [
   [/≤/g, String.raw`\leq `],
   [/≥/g, String.raw`\geq `],
@@ -884,22 +891,29 @@ function renderTextBlockContent(content: string) {
 
   for (const match of normalized.matchAll(mathPattern)) {
     const start = match.index ?? 0;
-    out += latexEscape(normalized.slice(lastIndex, start));
+    out += latexEscape(normalizePlainTextSegmentForLatex(normalized.slice(lastIndex, start)));
     out += normalizeDelimitedMathSegment(match[0]);
     lastIndex = start + match[0].length;
   }
 
-  out += latexEscape(normalized.slice(lastIndex));
+  out += latexEscape(normalizePlainTextSegmentForLatex(normalized.slice(lastIndex)));
 
   return out;
 }
 
 function latexGraphicPath(filename: string) {
-  return filename
+  const normalized = filename
     .replace(/\r\n?/g, "")
     .replace(/\\/g, "/")
     .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "")
-    .trim();
+    .trim()
+    .replace(/^\.?\//, "")
+    .replace(/^images\//i, "");
+
+  return normalized
+    .split("/")
+    .filter((segment) => segment && segment !== "." && segment !== "..")
+    .join("/");
 }
 
 function latexOptionEscape(text: string) {
@@ -1071,6 +1085,7 @@ function buildPreamble() {
 \usepackage{setspace}
 \onehalfspacing
 \usepackage{microtype}
+\microtypesetup{expansion=false}
 \usepackage{xurl}
 \emergencystretch=3em
 
@@ -1435,6 +1450,17 @@ export function normalizeDraft(draft: ReportDraft): ReportDraft {
 }
 
 function normalizeBlock(block: ReportBlock): ReportBlock {
+  if (block.type === "figure") {
+    const legacyBlock = block as FigureBlock & {
+      imageData?: string;
+    };
+
+    return {
+      ...legacyBlock,
+      imageData: legacyBlock.imageData ?? ""
+    };
+  }
+
   if (block.type === "calculation") {
     const legacyBlock = block as CalculationBlock & {
       code?: string;

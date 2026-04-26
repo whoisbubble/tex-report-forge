@@ -294,7 +294,25 @@ export default function Home() {
 
   useEffect(() => {
     if (!loaded) return;
-    window.localStorage.setItem(storageKey, JSON.stringify(draft));
+
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(draft));
+    } catch (error) {
+      if (isQuotaExceededError(error)) {
+        try {
+          window.localStorage.setItem(storageKey, JSON.stringify(createAutosaveDraft(draft)));
+          console.warn(
+            "[autosave] Project exceeded localStorage quota; embedded figure files were omitted from browser autosave."
+          );
+        } catch (fallbackError) {
+          console.error("[autosave] Failed to store fallback draft.", fallbackError);
+        }
+
+        return;
+      }
+
+      console.error("[autosave] Failed to store draft.", error);
+    }
   }, [draft, loaded]);
 
   useEffect(() => {
@@ -650,7 +668,8 @@ export default function Home() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          tex
+          tex,
+          draft
         })
       });
 
@@ -685,7 +704,7 @@ export default function Home() {
     const payload = {
       app: appName,
       kind: capabilitiesFileKind,
-      version: 8,
+      version: 9,
       draft: capabilitiesDraft,
       generatedAt: new Date().toISOString(),
       purpose: "Редактор отчетов с генерацией LaTeX и локальной сборкой PDF.",
@@ -750,6 +769,7 @@ export default function Home() {
         tableCellWrapping: true,
         calculationFontSizeControl: true,
         overleafShortcut: true,
+        embeddedFigureFiles: true,
         localPdfCompilation: "requires pdflatex / MiKTeX / TeX Live"
       },
       blockTypes: [
@@ -760,7 +780,13 @@ export default function Home() {
         {
           type: "figure",
           purpose: "Внешняя картинка из images/",
-          fields: ["filename", "caption"]
+          fields: ["filename", "caption", "imageData"],
+          filenameRule:
+            "Use the file name relative to the images/ folder, for example schema.png or diagrams/er_model.png.",
+          localPdfHint:
+            "For local PDF compilation attach the image in the figure block so the app can place it into the temporary images/ directory automatically.",
+          overleafHint:
+            "For Overleaf export keep filename filled and upload the corresponding file into the images/ folder there."
         },
           {
             type: "code",
@@ -1398,6 +1424,25 @@ function getBlockSearchText(block: ReportBlock) {
   }
 }
 
+function createAutosaveDraft(draft: ReportDraft): ReportDraft {
+  return {
+    ...draft,
+    sections: draft.sections.map((section) => ({
+      ...section,
+      blocks: section.blocks.map((block) =>
+        block.type === "figure" && block.imageData ? { ...block, imageData: "" } : block
+      )
+    }))
+  };
+}
+
+function isQuotaExceededError(error: unknown) {
+  return (
+    error instanceof DOMException &&
+    (error.name === "QuotaExceededError" || error.name === "NS_ERROR_DOM_QUOTA_REACHED" || error.code === 22)
+  );
+}
+
 function parseGraphPreviewPoints(points: string) {
   return points
     .split("\n")
@@ -1740,6 +1785,7 @@ function BlockEditor({
   onUpdateListItem: (itemId: string, patch: Partial<{ label: string; text: string }>) => void;
 }) {
   const calculationTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const figureFileInputRef = useRef<HTMLInputElement>(null);
   const textTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [isTextInsertOpen, setIsTextInsertOpen] = useState(false);
 
@@ -1786,6 +1832,30 @@ function BlockEditor({
       textarea.focus();
       textarea.setSelectionRange(cursorPosition, cursorPosition);
     });
+  }
+
+  function handleFigureFileChange(event: ChangeEvent<HTMLInputElement>) {
+    if (block.type !== "figure") return;
+
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const imageData = typeof reader.result === "string" ? reader.result : "";
+
+      onUpdate((current) =>
+        current.type === "figure"
+          ? {
+              ...current,
+              filename: file.name,
+              imageData
+            }
+          : current
+      );
+    };
+    reader.readAsDataURL(file);
+    event.target.value = "";
   }
 
   return (
@@ -1904,6 +1974,39 @@ function BlockEditor({
           </label>
           <p className="inline-note">Файл положите рядом с `.tex` в папку `images/`.</p>
         </div>
+      )}
+
+      {block.type === "figure" && (
+        <>
+          <div className="text-tools">
+            <button className="chip-button" type="button" onClick={() => figureFileInputRef.current?.click()}>
+              Прикрепить картинку
+            </button>
+            {(block as FigureBlock).imageData ? (
+              <button
+                className="chip-button"
+                type="button"
+                onClick={() =>
+                  onUpdate((current) => (current.type === "figure" ? { ...current, imageData: "" } : current))
+                }
+              >
+                Убрать вложение
+              </button>
+            ) : null}
+            <input
+              ref={figureFileInputRef}
+              accept="image/*"
+              hidden
+              type="file"
+              onChange={handleFigureFileChange}
+            />
+          </div>
+          <p className="inline-note">
+            {(block as FigureBlock).imageData
+              ? `Локальная копия прикреплена: ${(block as FigureBlock).filename}`
+              : "Для локальной PDF-сборки прикрепите файл здесь. Для Overleaf можно просто указать имя и загрузить картинку в images/."}
+          </p>
+        </>
       )}
 
       {block.type === "code" && (
