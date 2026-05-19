@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import {
   buildFullTex,
   buildSectionDisplayInfo,
@@ -13,6 +13,7 @@ import {
   createSection,
   makeId,
   normalizeDraft,
+  type CadBlock,
   type CodeBlock,
   type CalculationBlock,
   type FigureBlock,
@@ -44,6 +45,7 @@ const blockLabels: Record<ReportBlock["type"], string> = {
   calculation: "Расчёты",
   table: "Таблица",
   graph: "График",
+  cad: "3D/CAD",
   list: "Список",
   pagebreak: "Разрыв страницы"
 };
@@ -134,6 +136,13 @@ const graphPreviewColors: Record<string, string> = {
   orange: "#ffae57",
   "green!60!black": "#8ad06f",
   violet: "#c18cff"
+};
+
+const cadShapeLabels: Record<CadBlock["shape"], string> = {
+  box: "Параллелепипед",
+  cylinder: "Цилиндр",
+  cone: "Конус",
+  sphere: "Сфера"
 };
 
 const calculationEnvironmentLabels: Record<CalculationBlock["environment"], string> = {
@@ -613,7 +622,7 @@ export default function Home() {
             id: makeId("series"),
             label: `Серия ${block.series.length + 1}`,
             color: "teal",
-            points: "1;10\n2;15\n3;12"
+            points: isThreeDimensionalGraphMode(block.mode) ? "0;0;0\n1;1;2\n2;2;3" : "1;10\n2;15\n3;12"
           }
         ]
       };
@@ -704,7 +713,7 @@ export default function Home() {
     const payload = {
       app: appName,
       kind: capabilitiesFileKind,
-      version: 9,
+      version: 10,
       draft: capabilitiesDraft,
       generatedAt: new Date().toISOString(),
       purpose: "Редактор отчетов с генерацией LaTeX и локальной сборкой PDF.",
@@ -762,7 +771,9 @@ export default function Home() {
         globalSearch: "search across headings and all block content",
         localAutosave: true,
         projectImportExport: true,
-        graphPreview: "inline SVG preview in editor before TEX/PDF generation",
+        graphPreview: "inline SVG preview for 2D and 3D graphs before TEX/PDF generation",
+        graph3D: "numeric X;Y;Z series rendered through PGFPlots addplot3",
+        cadFigures: "dimensioned volumetric figures rendered through TikZ without external images",
         inlineMathInTextBlocks: true,
         tableMathSupport: true,
         tableSizingControl: true,
@@ -832,10 +843,37 @@ export default function Home() {
         },
         {
           type: "graph",
-          purpose: "График через TikZ/PGFPlots",
-          fields: ["caption", "title", "xLabel", "yLabel", "mode", "startAtZero", "series"],
+          purpose: "2D или 3D график через TikZ/PGFPlots",
+          fields: ["caption", "title", "xLabel", "yLabel", "zLabel", "mode", "startAtZero", "series"],
+          modeOptions: ["line", "bar", "line3d", "scatter3d"],
           seriesFields: ["label", "color", "points"],
-          preview: "inline SVG preview with axes and legend"
+          pointFormats: {
+            line: "X;Y, numeric X or symbolic X labels are supported",
+            bar: "X;Y, symbolic X labels are supported",
+            line3d: "X;Y;Z, all coordinates must be numeric",
+            scatter3d: "X;Y;Z, all coordinates must be numeric"
+          },
+          preview: "inline SVG preview with axes and legend; 3D preview uses projected X/Y/Z axes"
+        },
+        {
+          type: "cad",
+          purpose: "Объемная CAD-подобная фигура с подписанными размерами через TikZ",
+          fields: [
+            "caption",
+            "title",
+            "shape",
+            "width",
+            "depth",
+            "height",
+            "diameter",
+            "units",
+            "color",
+            "showDimensions"
+          ],
+          shapeOptions: ["box", "cylinder", "cone", "sphere"],
+          dimensionRules:
+            "For box use width/depth/height as X/Y/Z dimensions. For cylinder and cone use diameter/height. For sphere use diameter. Set units to mm, cm or any printable unit label.",
+          preview: "inline SVG CAD preview; export uses TikZ so the final .tex has no external figure dependency"
         },
         {
           type: "list",
@@ -865,6 +903,16 @@ export default function Home() {
           "Table cells may contain inline math like $\\mu_A(x)$ or $X \\cap Y$.",
           "Use semicolon ; only as a cell separator, not inside the formula text unless escaped or rewritten.",
           "For wide tables, reduce fontSize, enable fitToWidth, or turn on wrapCells for automatic line wrapping."
+        ],
+        graph3DGuidance: [
+          "Use graph.mode=line3d for connected 3D trajectories and scatter3d for separate 3D points.",
+          "3D graph points must use one point per line in X;Y;Z format and all three coordinates must be numeric.",
+          "Fill xLabel, yLabel and zLabel because the exported PGFPlots axis displays all three axes."
+        ],
+        cadGuidance: [
+          "Use type=cad when the user asks for a volumetric figure, dimensioned sketch, simple CAD-like drawing or signed dimensions.",
+          "Use shape=box for rectangular solids, cylinder for shafts/tubes, cone for conical parts and sphere for balls.",
+          "Keep dimension values as strings so imported project JSON can preserve user units and formatting."
         ],
         titlePageGuidance: [
           "The default title page layout should be preserved unless the user asks for a custom composition.",
@@ -1306,7 +1354,7 @@ export default function Home() {
                   </div>
                 </div>
                 {!isCollapsed && <div className="block-toolbar">
-                  {(["text", "figure", "code", "calculation", "table", "graph", "list", "pagebreak"] as ReportBlock["type"][]).map(
+                  {(["text", "figure", "code", "calculation", "table", "graph", "cad", "list", "pagebreak"] as ReportBlock["type"][]).map(
                     (type) => (
                       <button className="chip-button" key={type} type="button" onClick={() => addBlock(section.id, type)}>
                         + {blockLabels[type]}
@@ -1412,9 +1460,11 @@ function getBlockSearchText(block: ReportBlock) {
     case "table":
       return `${block.caption} ${block.cols} ${block.fontSize} ${block.fitToWidth} ${block.wrapCells} ${block.data}`;
     case "graph":
-      return `${block.caption} ${block.title} ${block.xLabel} ${block.yLabel} ${block.mode} ${block.series
+      return `${block.caption} ${block.title} ${block.xLabel} ${block.yLabel} ${block.zLabel} ${block.mode} ${block.series
         .map((series) => `${series.label} ${series.color} ${series.points}`)
         .join(" ")}`;
+    case "cad":
+      return `${block.caption} ${block.title} ${block.shape} ${block.width} ${block.depth} ${block.height} ${block.diameter} ${block.units} ${block.color} ${block.showDimensions}`;
     case "list":
       return block.items.map((item) => `${item.label} ${item.text}`).join(" ");
     case "pagebreak":
@@ -1443,6 +1493,10 @@ function isQuotaExceededError(error: unknown) {
   );
 }
 
+function isThreeDimensionalGraphMode(mode: GraphBlock["mode"]) {
+  return mode === "line3d" || mode === "scatter3d";
+}
+
 function parseGraphPreviewPoints(points: string) {
   return points
     .split("\n")
@@ -1464,6 +1518,30 @@ function parseGraphPreviewPoints(points: string) {
     xRaw: string;
     xNumeric: number | null;
     y: number;
+  }>;
+}
+
+function parseGraphPreviewPoints3D(points: string) {
+  return points
+    .split("\n")
+    .map((row) => row.trim())
+    .filter(Boolean)
+    .map((row) => {
+      const [x = "", y = "", z = ""] = row.split(";");
+      const xValue = Number(x.trim().replace(",", "."));
+      const yValue = Number(y.trim().replace(",", "."));
+      const zValue = Number(z.trim().replace(",", "."));
+
+      return {
+        x: Number.isFinite(xValue) ? xValue : null,
+        y: Number.isFinite(yValue) ? yValue : null,
+        z: Number.isFinite(zValue) ? zValue : null
+      };
+    })
+    .filter((point) => point.x !== null && point.y !== null && point.z !== null) as Array<{
+    x: number;
+    y: number;
+    z: number;
   }>;
 }
 
@@ -1532,6 +1610,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function GraphPreview({ block }: { block: GraphBlock }) {
+  if (isThreeDimensionalGraphMode(block.mode)) {
+    return <GraphPreview3D block={block} />;
+  }
+
   const width = 760;
   const height = 320;
   const padding = { top: 24, right: 22, bottom: 56, left: 58 };
@@ -1750,6 +1832,326 @@ function GraphPreview({ block }: { block: GraphBlock }) {
             {series.label.trim() || `Серия ${index + 1}`}
           </span>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function GraphPreview3D({ block }: { block: GraphBlock }) {
+  const width = 760;
+  const height = 340;
+  const origin = { x: 150, y: 270 };
+  const axis = {
+    x: { x: 430, y: 0 },
+    y: { x: 190, y: -95 },
+    z: { x: 0, y: -220 }
+  };
+
+  const parsedSeries = block.series
+    .map((series) => ({
+      ...series,
+      color: resolveGraphPreviewColor(series.color),
+      points: parseGraphPreviewPoints3D(series.points)
+    }))
+    .filter((series) => series.points.length > 0);
+
+  if (parsedSeries.length === 0) {
+    return <div className="graph-preview-empty">Добавьте хотя бы одну корректную точку в формате `X;Y;Z`.</div>;
+  }
+
+  const allPoints = parsedSeries.flatMap((series) => series.points);
+  const xValues = allPoints.map((point) => point.x);
+  const yValues = allPoints.map((point) => point.y);
+  const zValues = allPoints.map((point) => point.z);
+  const ranges = {
+    xMin: block.startAtZero ? Math.min(0, ...xValues) : Math.min(...xValues),
+    xMax: Math.max(...xValues),
+    yMin: block.startAtZero ? Math.min(0, ...yValues) : Math.min(...yValues),
+    yMax: Math.max(...yValues),
+    zMin: block.startAtZero ? Math.min(0, ...zValues) : Math.min(...zValues),
+    zMax: Math.max(...zValues)
+  };
+
+  if (ranges.xMin === ranges.xMax) ranges.xMax += 1;
+  if (ranges.yMin === ranges.yMax) ranges.yMax += 1;
+  if (ranges.zMin === ranges.zMax) ranges.zMax += 1;
+
+  const project = (point: { x: number; y: number; z: number }) => {
+    const nx = (point.x - ranges.xMin) / (ranges.xMax - ranges.xMin);
+    const ny = (point.y - ranges.yMin) / (ranges.yMax - ranges.yMin);
+    const nz = (point.z - ranges.zMin) / (ranges.zMax - ranges.zMin);
+
+    return {
+      x: origin.x + axis.x.x * nx + axis.y.x * ny + axis.z.x * nz,
+      y: origin.y + axis.x.y * nx + axis.y.y * ny + axis.z.y * nz
+    };
+  };
+
+  const axisEndX = project({ x: ranges.xMax, y: ranges.yMin, z: ranges.zMin });
+  const axisEndY = project({ x: ranges.xMin, y: ranges.yMax, z: ranges.zMin });
+  const axisEndZ = project({ x: ranges.xMin, y: ranges.yMin, z: ranges.zMax });
+  const gridSteps = [0.25, 0.5, 0.75, 1];
+
+  return (
+    <div className="graph-preview">
+      <div className="graph-preview-meta">
+        <strong>Предпросмотр 3D-графика</strong>
+        <span>
+          Серий: {parsedSeries.length} · Точек: {allPoints.length}
+        </span>
+      </div>
+
+      <div className="graph-preview-frame">
+        <svg aria-label="Предпросмотр 3D-графика" className="graph-preview-svg" role="img" viewBox={`0 0 ${width} ${height}`}>
+          {gridSteps.map((step) => {
+            const xLineStart = project({
+              x: ranges.xMin + (ranges.xMax - ranges.xMin) * step,
+              y: ranges.yMin,
+              z: ranges.zMin
+            });
+            const xLineEnd = project({
+              x: ranges.xMin + (ranges.xMax - ranges.xMin) * step,
+              y: ranges.yMax,
+              z: ranges.zMin
+            });
+            const yLineStart = project({
+              x: ranges.xMin,
+              y: ranges.yMin + (ranges.yMax - ranges.yMin) * step,
+              z: ranges.zMin
+            });
+            const yLineEnd = project({
+              x: ranges.xMax,
+              y: ranges.yMin + (ranges.yMax - ranges.yMin) * step,
+              z: ranges.zMin
+            });
+
+            return (
+              <g key={`grid-${step}`}>
+                <line className="graph-grid-line vertical" x1={xLineStart.x} x2={xLineEnd.x} y1={xLineStart.y} y2={xLineEnd.y} />
+                <line className="graph-grid-line vertical" x1={yLineStart.x} x2={yLineEnd.x} y1={yLineStart.y} y2={yLineEnd.y} />
+              </g>
+            );
+          })}
+
+          <line className="graph-axis-line" x1={origin.x} x2={axisEndX.x} y1={origin.y} y2={axisEndX.y} />
+          <line className="graph-axis-line" x1={origin.x} x2={axisEndY.x} y1={origin.y} y2={axisEndY.y} />
+          <line className="graph-axis-line" x1={origin.x} x2={axisEndZ.x} y1={origin.y} y2={axisEndZ.y} />
+
+          {parsedSeries.map((series) => {
+            const coordinates = series.points.map((point, index) => ({
+              ...project(point),
+              key: `${series.id}-${index}`
+            }));
+            const path = coordinates
+              .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
+              .join(" ");
+
+            return (
+              <g key={series.id}>
+                {block.mode === "line3d" ? <path className="graph-series-line" d={path} stroke={series.color} /> : null}
+                {coordinates.map((point) => (
+                  <circle
+                    key={point.key}
+                    className="graph-series-point"
+                    cx={point.x}
+                    cy={point.y}
+                    fill={series.color}
+                    r="5"
+                  />
+                ))}
+              </g>
+            );
+          })}
+
+          {block.title.trim() ? (
+            <text className="graph-title" textAnchor="middle" x={width / 2} y={18}>
+              {block.title}
+            </text>
+          ) : null}
+          <text className="graph-axis-title" textAnchor="middle" x={axisEndX.x + 24} y={axisEndX.y + 4}>
+            {block.xLabel || "X"}
+          </text>
+          <text className="graph-axis-title" textAnchor="middle" x={axisEndY.x + 18} y={axisEndY.y - 8}>
+            {block.yLabel || "Y"}
+          </text>
+          <text className="graph-axis-title" textAnchor="middle" x={axisEndZ.x - 18} y={axisEndZ.y - 8}>
+            {block.zLabel || "Z"}
+          </text>
+        </svg>
+      </div>
+
+      <div className="graph-legend">
+        {parsedSeries.map((series, index) => (
+          <span className="graph-legend-item" key={series.id}>
+            <span className="graph-legend-swatch" style={{ backgroundColor: series.color }} />
+            {series.label.trim() || `Серия ${index + 1}`}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function parseCadNumber(value: string, fallback: number) {
+  const parsed = Number.parseFloat(value.trim().replace(",", "."));
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function cadDimensionLabel(label: string, value: string, units: string) {
+  const trimmedUnits = units.trim();
+
+  return `${label}: ${value.trim()}${trimmedUnits ? ` ${trimmedUnits}` : ""}`;
+}
+
+function CadPreview({ block }: { block: CadBlock }) {
+  const width = 760;
+  const height = 320;
+  const color = resolveGraphPreviewColor(block.color);
+  const dimensionColor = "#f0cf76";
+  const w = parseCadNumber(block.width, 80);
+  const d = parseCadNumber(block.depth, 50);
+  const h = parseCadNumber(block.height, 35);
+  const diameter = parseCadNumber(block.diameter, 40);
+  const maxDimension = block.shape === "box" ? Math.max(w, d, h) : Math.max(diameter, h);
+  const scale = Math.min(165 / Math.max(maxDimension, 1), 2.2);
+
+  const dimensionLine = (x1: number, y1: number, x2: number, y2: number, text: string, key: string) => (
+    <g key={key}>
+      <line className="cad-dimension-line" x1={x1} x2={x2} y1={y1} y2={y2} />
+      <text className="cad-dimension-label" textAnchor="middle" x={(x1 + x2) / 2} y={(y1 + y2) / 2 - 6}>
+        {text}
+      </text>
+    </g>
+  );
+
+  let drawing: ReactNode;
+  let dimensions: ReactNode[] = [];
+
+  if (block.shape === "box") {
+    const origin = { x: 210, y: 230 };
+    const px = (x: number, y: number, z: number) => ({
+      x: origin.x + x * scale + y * scale * 0.48,
+      y: origin.y - z * scale - y * scale * 0.28
+    });
+    const o = px(0, 0, 0);
+    const a = px(w, 0, 0);
+    const b = px(w, d, 0);
+    const c = px(0, d, 0);
+    const oz = px(0, 0, h);
+    const az = px(w, 0, h);
+    const bz = px(w, d, h);
+    const cz = px(0, d, h);
+    const polygon = (...points: Array<{ x: number; y: number }>) => points.map((point) => `${point.x},${point.y}`).join(" ");
+
+    drawing = (
+      <g>
+        <polygon fill={color} opacity="0.22" points={polygon(o, a, b, c)} stroke={color} />
+        <polygon fill={color} opacity="0.34" points={polygon(a, b, bz, az)} stroke={color} />
+        <polygon fill={color} opacity="0.48" points={polygon(oz, az, bz, cz)} stroke={color} />
+        {[o, a, b, c, o, oz, az, a, az, bz, b, bz, cz, c, cz, oz].map((point, index, points) =>
+          index === 0 ? null : (
+            <line
+              className="cad-edge"
+              key={`edge-${index}`}
+              x1={points[index - 1].x}
+              x2={point.x}
+              y1={points[index - 1].y}
+              y2={point.y}
+            />
+          )
+        )}
+      </g>
+    );
+
+    if (block.showDimensions) {
+      dimensions = [
+        dimensionLine(o.x, o.y + 34, a.x, a.y + 34, cadDimensionLabel("X", block.width, block.units), "dim-x"),
+        dimensionLine(a.x + 18, a.y + 18, b.x + 18, b.y + 18, cadDimensionLabel("Y", block.depth, block.units), "dim-y"),
+        dimensionLine(b.x + 28, b.y, bz.x + 28, bz.y, cadDimensionLabel("Z", block.height, block.units), "dim-z")
+      ];
+    }
+  } else if (block.shape === "sphere") {
+    const cx = width / 2;
+    const cy = 165;
+    const r = (diameter / 2) * scale;
+
+    drawing = (
+      <g>
+        <circle className="cad-solid-fill" cx={cx} cy={cy} fill={color} r={r} />
+        <ellipse className="cad-edge-soft" cx={cx} cy={cy} rx={r} ry={Math.max(r * 0.24, 6)} />
+        <ellipse className="cad-edge-soft dashed" cx={cx} cy={cy} rx={Math.max(r * 0.24, 6)} ry={r} />
+      </g>
+    );
+
+    if (block.showDimensions) {
+      dimensions = [dimensionLine(cx - r, cy + r + 30, cx + r, cy + r + 30, cadDimensionLabel("D", block.diameter, block.units), "dim-d")];
+    }
+  } else {
+    const cx = width / 2;
+    const baseY = 245;
+    const r = (diameter / 2) * scale;
+    const visualHeight = h * scale;
+    const ellipseY = Math.max(r * 0.26, 7);
+
+    if (block.shape === "cylinder") {
+      drawing = (
+        <g>
+          <path
+            className="cad-solid-fill"
+            d={`M ${cx - r} ${baseY} A ${r} ${ellipseY} 0 0 0 ${cx + r} ${baseY} L ${cx + r} ${baseY - visualHeight} A ${r} ${ellipseY} 0 0 0 ${cx - r} ${baseY - visualHeight} Z`}
+            fill={color}
+          />
+          <line className="cad-edge" x1={cx - r} x2={cx - r} y1={baseY} y2={baseY - visualHeight} />
+          <line className="cad-edge" x1={cx + r} x2={cx + r} y1={baseY} y2={baseY - visualHeight} />
+          <ellipse className="cad-edge" cx={cx} cy={baseY - visualHeight} rx={r} ry={ellipseY} />
+          <path className="cad-edge-soft dashed" d={`M ${cx + r} ${baseY} A ${r} ${ellipseY} 0 0 0 ${cx - r} ${baseY}`} />
+          <path className="cad-edge" d={`M ${cx - r} ${baseY} A ${r} ${ellipseY} 0 0 0 ${cx + r} ${baseY}`} />
+        </g>
+      );
+    } else {
+      drawing = (
+        <g>
+          <path
+            className="cad-solid-fill"
+            d={`M ${cx - r} ${baseY} L ${cx} ${baseY - visualHeight} L ${cx + r} ${baseY} A ${r} ${ellipseY} 0 0 1 ${cx - r} ${baseY} Z`}
+            fill={color}
+          />
+          <path className="cad-edge-soft dashed" d={`M ${cx + r} ${baseY} A ${r} ${ellipseY} 0 0 0 ${cx - r} ${baseY}`} />
+          <path className="cad-edge" d={`M ${cx - r} ${baseY} A ${r} ${ellipseY} 0 0 0 ${cx + r} ${baseY}`} />
+          <line className="cad-edge" x1={cx - r} x2={cx} y1={baseY} y2={baseY - visualHeight} />
+          <line className="cad-edge" x1={cx + r} x2={cx} y1={baseY} y2={baseY - visualHeight} />
+        </g>
+      );
+    }
+
+    if (block.showDimensions) {
+      dimensions = [
+        dimensionLine(cx - r, baseY + 32, cx + r, baseY + 32, cadDimensionLabel("D", block.diameter, block.units), "dim-d"),
+        dimensionLine(cx + r + 40, baseY, cx + r + 40, baseY - visualHeight, cadDimensionLabel("H", block.height, block.units), "dim-h")
+      ];
+    }
+  }
+
+  return (
+    <div className="cad-preview">
+      <div className="graph-preview-meta">
+        <strong>Предпросмотр CAD-фигуры</strong>
+        <span>{cadShapeLabels[block.shape]}</span>
+      </div>
+      <div className="graph-preview-frame">
+        <svg aria-label="Предпросмотр CAD-фигуры" className="graph-preview-svg" role="img" viewBox={`0 0 ${width} ${height}`}>
+          {block.title.trim() ? (
+            <text className="graph-title" textAnchor="middle" x={width / 2} y={22}>
+              {block.title}
+            </text>
+          ) : null}
+          {drawing}
+          {dimensions}
+          <text className="cad-dimension-label" fill={dimensionColor} textAnchor="end" x={width - 22} y={height - 18}>
+            {block.units.trim() || "ед."}
+          </text>
+        </svg>
       </div>
     </div>
   );
@@ -2267,6 +2669,20 @@ function BlockEditor({
                 }
               />
             </label>
+            {isThreeDimensionalGraphMode((block as GraphBlock).mode) ? (
+              <label className="field">
+                <span>Подпись оси Z</span>
+                <input
+                  type="text"
+                  value={(block as GraphBlock).zLabel}
+                  onChange={(event) =>
+                    onUpdate((current) =>
+                      current.type === "graph" ? { ...current, zLabel: event.target.value } : current
+                    )
+                  }
+                />
+              </label>
+            ) : null}
           </div>
           <div className="block-grid">
             <label className="field">
@@ -2276,13 +2692,19 @@ function BlockEditor({
                 onChange={(event) =>
                   onUpdate((current) =>
                     current.type === "graph"
-                      ? { ...current, mode: event.target.value as GraphBlock["mode"] }
+                      ? {
+                          ...current,
+                          mode: event.target.value as GraphBlock["mode"],
+                          zLabel: current.zLabel || "Z"
+                        }
                       : current
                   )
                 }
               >
                 <option value="line">Линейный</option>
                 <option value="bar">Столбчатый</option>
+                <option value="line3d">3D линия</option>
+                <option value="scatter3d">3D точки</option>
               </select>
             </label>
             <div className="field">
@@ -2342,7 +2764,11 @@ function BlockEditor({
                   <span>Точки серии</span>
                   <textarea
                     className="large-textarea"
-                    placeholder={"Каждая строка — одна точка.\nФормат: X;Y\nЯнв;12\nФев;18\nМар;15"}
+                    placeholder={
+                      isThreeDimensionalGraphMode((block as GraphBlock).mode)
+                        ? "Каждая строка — одна точка.\nФормат: X;Y;Z\n0;0;0\n1;1;2\n2;3;5"
+                        : "Каждая строка — одна точка.\nФормат: X;Y\nЯнв;12\nФев;18\nМар;15"
+                    }
                     value={series.points}
                     onChange={(event) => onUpdateGraphSeries(series.id, { points: event.target.value })}
                   />
@@ -2354,7 +2780,153 @@ function BlockEditor({
             + Серия
           </button>
           <p className="inline-note">
-            Формат точек: одна строка = одна точка, `X;Y`.
+            Формат точек: для 2D `X;Y`, для 3D `X;Y;Z`. В 3D-режимах координаты должны быть числовыми.
+          </p>
+        </>
+      )}
+
+      {block.type === "cad" && (
+        <>
+          <div className="block-grid">
+            <label className="field">
+              <span>Подпись к фигуре</span>
+              <input
+                type="text"
+                value={(block as CadBlock).caption}
+                onChange={(event) =>
+                  onUpdate((current) => (current.type === "cad" ? { ...current, caption: event.target.value } : current))
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Название на эскизе</span>
+              <input
+                type="text"
+                value={(block as CadBlock).title}
+                onChange={(event) =>
+                  onUpdate((current) => (current.type === "cad" ? { ...current, title: event.target.value } : current))
+                }
+              />
+            </label>
+          </div>
+
+          <div className="block-grid">
+            <label className="field">
+              <span>Фигура</span>
+              <select
+                value={(block as CadBlock).shape}
+                onChange={(event) =>
+                  onUpdate((current) =>
+                    current.type === "cad" ? { ...current, shape: event.target.value as CadBlock["shape"] } : current
+                  )
+                }
+              >
+                {Object.entries(cadShapeLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>Цвет</span>
+              <select
+                value={(block as CadBlock).color}
+                onChange={(event) =>
+                  onUpdate((current) => (current.type === "cad" ? { ...current, color: event.target.value } : current))
+                }
+              >
+                <option value="teal">Бирюзовый</option>
+                <option value="blue">Синий</option>
+                <option value="red">Красный</option>
+                <option value="orange">Оранжевый</option>
+                <option value="green!60!black">Зелёный</option>
+                <option value="violet">Фиолетовый</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="block-grid">
+            {(block as CadBlock).shape === "box" ? (
+              <>
+                <label className="field">
+                  <span>X / длина</span>
+                  <input
+                    min="0"
+                    type="number"
+                    value={(block as CadBlock).width}
+                    onChange={(event) =>
+                      onUpdate((current) => (current.type === "cad" ? { ...current, width: event.target.value } : current))
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>Y / глубина</span>
+                  <input
+                    min="0"
+                    type="number"
+                    value={(block as CadBlock).depth}
+                    onChange={(event) =>
+                      onUpdate((current) => (current.type === "cad" ? { ...current, depth: event.target.value } : current))
+                    }
+                  />
+                </label>
+              </>
+            ) : (
+              <label className="field">
+                <span>Диаметр</span>
+                <input
+                  min="0"
+                  type="number"
+                  value={(block as CadBlock).diameter}
+                  onChange={(event) =>
+                    onUpdate((current) => (current.type === "cad" ? { ...current, diameter: event.target.value } : current))
+                  }
+                />
+              </label>
+            )}
+            {(block as CadBlock).shape !== "sphere" ? (
+              <label className="field">
+                <span>Z / высота</span>
+                <input
+                  min="0"
+                  type="number"
+                  value={(block as CadBlock).height}
+                  onChange={(event) =>
+                    onUpdate((current) => (current.type === "cad" ? { ...current, height: event.target.value } : current))
+                  }
+                />
+              </label>
+            ) : null}
+            <label className="field">
+              <span>Единицы</span>
+              <input
+                type="text"
+                value={(block as CadBlock).units}
+                onChange={(event) =>
+                  onUpdate((current) => (current.type === "cad" ? { ...current, units: event.target.value } : current))
+                }
+              />
+            </label>
+          </div>
+
+          <label className="toggle-field wide">
+            <input
+              checked={(block as CadBlock).showDimensions}
+              type="checkbox"
+              onChange={(event) =>
+                onUpdate((current) =>
+                  current.type === "cad" ? { ...current, showDimensions: event.target.checked } : current
+                )
+              }
+            />
+            <span>Подписывать размеры на фигуре</span>
+          </label>
+
+          <CadPreview block={block as CadBlock} />
+
+          <p className="inline-note">
+            Экспорт строится в TikZ: параллелепипед, цилиндр, конус и сфера остаются в `.tex` без внешних картинок.
           </p>
         </>
       )}

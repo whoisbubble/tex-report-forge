@@ -1,0 +1,89 @@
+{
+  "app": "tex.bostoncrew.ru",
+  "kind": "project-capabilities",
+  "version": 10,
+  "updatedAt": "2026-05-09",
+  "purpose": "Редактор отчетов с генерацией LaTeX, локальной сборкой PDF, 2D/3D-графиками и CAD-подобными TikZ-фигурами.",
+  "formats": {
+    "editable_project": "json",
+    "latex_export": "tex",
+    "pdf_export": "pdf"
+  },
+  "features": {
+    "titlePage": true,
+    "sectionEditing": true,
+    "projectImportExport": true,
+    "localPdfCompilation": "requires pdflatex / MiKTeX / TeX Live",
+    "graph2D": "line and bar charts through PGFPlots",
+    "graph3D": "numeric X;Y;Z series through PGFPlots addplot3",
+    "cadFigures": "dimensioned box, cylinder, cone and sphere through TikZ",
+    "embeddedFigureFiles": true,
+    "inlineMathInTextBlocks": true,
+    "tableMathSupport": true
+  },
+  "blockTypes": [
+    {
+      "type": "text",
+      "fields": ["content"],
+      "math": "Inline formulas may use $...$, \\(...\\) and \\[...\\]."
+    },
+    {
+      "type": "figure",
+      "fields": ["filename", "caption", "imageData"],
+      "filenameRule": "Use a path relative to the images/ folder."
+    },
+    {
+      "type": "code",
+      "fields": ["caption", "code"]
+    },
+    {
+      "type": "calculation",
+      "fields": ["caption", "environment", "fontSize", "formula"],
+      "environmentOptions": ["equation*", "equation", "align*", "align", "gather*", "gather", "multline*", "multline"],
+      "fontSizeOptions": ["normalsize", "small", "footnotesize", "scriptsize", "tiny"]
+    },
+    {
+      "type": "table",
+      "fields": ["caption", "cols", "fontSize", "fitToWidth", "wrapCells", "data"],
+      "dataFormat": "One row per line, semicolon-separated cells."
+    },
+    {
+      "type": "graph",
+      "fields": ["caption", "title", "xLabel", "yLabel", "zLabel", "mode", "startAtZero", "series"],
+      "modeOptions": ["line", "bar", "line3d", "scatter3d"],
+      "seriesFields": ["label", "color", "points"],
+      "pointFormats": {
+        "line": "X;Y",
+        "bar": "X;Y",
+        "line3d": "X;Y;Z numeric only",
+        "scatter3d": "X;Y;Z numeric only"
+      }
+    },
+    {
+      "type": "cad",
+      "fields": ["caption", "title", "shape", "width", "depth", "height", "diameter", "units", "color", "showDimensions"],
+      "shapeOptions": ["box", "cylinder", "cone", "sphere"],
+      "dimensionRules": "For box use width/depth/height as X/Y/Z. For cylinder and cone use diameter/height. For sphere use diameter."
+    },
+    {
+      "type": "list",
+      "fields": ["ordered", "items"]
+    },
+    {
+      "type": "pagebreak",
+      "fields": []
+    }
+  ],
+  "neuralInstructions": {
+    "graph3DGuidance": [
+      "Use graph.mode=line3d for connected 3D trajectories.",
+      "Use graph.mode=scatter3d for separate 3D points.",
+      "3D points must be one point per line in X;Y;Z format and all coordinates must be numeric."
+    ],
+    "cadGuidance": [
+      "Use type=cad for volumetric figures, signed dimensions and simple CAD-like sketches.",
+      "Use shape=box for rectangular solids, cylinder for shafts/tubes, cone for conical parts and sphere for balls.",
+      "Keep dimensions as strings to preserve user formatting and units."
+    ]
+  }
+}

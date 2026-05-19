@@ -61,7 +61,8 @@ export type GraphBlock = {
   title: string;
   xLabel: string;
   yLabel: string;
-  mode: "line" | "bar";
+  zLabel: string;
+  mode: "line" | "bar" | "line3d" | "scatter3d";
   startAtZero: boolean;
   series: GraphSeries[];
 };
@@ -71,6 +72,23 @@ export type GraphSeries = {
   label: string;
   color: string;
   points: string;
+};
+
+export type CadShape = "box" | "cylinder" | "cone" | "sphere";
+
+export type CadBlock = {
+  id: string;
+  type: "cad";
+  caption: string;
+  title: string;
+  shape: CadShape;
+  width: string;
+  depth: string;
+  height: string;
+  diameter: string;
+  units: string;
+  color: string;
+  showDimensions: boolean;
 };
 
 export type ListBlock = {
@@ -92,6 +110,7 @@ export type ReportBlock =
   | CalculationBlock
   | TableBlock
   | GraphBlock
+  | CadBlock
   | ListBlock
   | PageBreakBlock;
 
@@ -241,6 +260,7 @@ export function createBlock(type: ReportBlock["type"], figureIndex = 1): ReportB
       title: "",
       xLabel: "X",
       yLabel: "Y",
+      zLabel: "Z",
       mode: "line",
       startAtZero: true,
       series: [
@@ -251,6 +271,23 @@ export function createBlock(type: ReportBlock["type"], figureIndex = 1): ReportB
           points: "1;10\n2;15\n3;12"
         }
       ]
+    };
+  }
+
+  if (type === "cad") {
+    return {
+      id: makeId("block"),
+      type,
+      caption: "Объемная фигура",
+      title: "Эскиз детали",
+      shape: "box",
+      width: "80",
+      depth: "50",
+      height: "35",
+      diameter: "40",
+      units: "мм",
+      color: "teal",
+      showDimensions: true
     };
   }
 
@@ -432,6 +469,7 @@ export function createExampleDraft(): ReportDraft {
             title: "Нагрузка по этапам",
             xLabel: "Этап",
             yLabel: "мс",
+            zLabel: "Z",
             mode: "line",
             startAtZero: true,
             series: [
@@ -509,7 +547,7 @@ export function createCapabilitiesDraft(): ReportDraft {
               {
                 id: "item-cap-overview-3",
                 label: "blocks",
-                text: "Text, figure, code, calculation, table, graph, list and page break"
+                text: "Text, figure, code, calculation, table, 2D/3D graph, CAD figure, list and page break"
               }
             ]
           }
@@ -631,7 +669,7 @@ A \cap B \subseteq C`
             id: "block-cap-graphs-text",
             type: "text",
             content:
-              "Graph blocks support multiple series, line and bar modes, labels, colors and preview inside the editor."
+              "Graph blocks support multiple series, 2D line/bar modes, 3D line/scatter modes, axis labels, colors and preview inside the editor."
           },
           {
             id: "block-cap-graph-line",
@@ -640,6 +678,7 @@ A \cap B \subseteq C`
             title: "Request latency by stage",
             xLabel: "Stage",
             yLabel: "ms",
+            zLabel: "Z",
             mode: "line",
             startAtZero: true,
             series: [
@@ -664,6 +703,7 @@ A \cap B \subseteq C`
             title: "Coverage by module",
             xLabel: "Module",
             yLabel: "%",
+            zLabel: "Z",
             mode: "bar",
             startAtZero: true,
             series: [
@@ -680,6 +720,67 @@ A \cap B \subseteq C`
                 points: "Auth;84\nReports;78\nGraphs;90"
               }
             ]
+          },
+          {
+            id: "block-cap-graph-3d",
+            type: "graph",
+            caption: "3D trajectory with three axes",
+            title: "Part load trajectory",
+            xLabel: "X",
+            yLabel: "Y",
+            zLabel: "Z",
+            mode: "line3d",
+            startAtZero: true,
+            series: [
+              {
+                id: "series-cap-3d-main",
+                label: "Path",
+                color: "violet",
+                points: "0;0;0\n1;1;2\n2;1.5;3\n3;2.4;3.8\n4;3;5"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: "section-cap-cad",
+        title: "CAD Figures",
+        level: 1,
+        isNumbered: true,
+        blocks: [
+          {
+            id: "block-cap-cad-text",
+            type: "text",
+            content:
+              "CAD blocks create simple volumetric figures directly in LaTeX/TikZ. They store dimensions, units, shape type and a dimension-label toggle."
+          },
+          {
+            id: "block-cap-cad-box",
+            type: "cad",
+            caption: "Dimensioned rectangular solid",
+            title: "Box 80 x 50 x 35 mm",
+            shape: "box",
+            width: "80",
+            depth: "50",
+            height: "35",
+            diameter: "40",
+            units: "мм",
+            color: "teal",
+            showDimensions: true
+          },
+          {
+            id: "block-cap-cad-cylinder",
+            type: "cad",
+            caption: "Dimensioned cylinder",
+            title: "Cylinder D40 H70",
+            shape: "cylinder",
+            width: "80",
+            depth: "50",
+            height: "70",
+            diameter: "40",
+            units: "мм",
+            color: "blue",
+            showDimensions: true
           }
         ]
       },
@@ -952,7 +1053,36 @@ function parseGraphPoints(points: string) {
     .filter((point) => point.x && point.y);
 }
 
+function parseGraphPoints3D(points: string) {
+  return points
+    .split("\n")
+    .map((row) => row.trim())
+    .filter(Boolean)
+    .map((row) => {
+      const [x = "", y = "", z = ""] = row.split(";");
+      return {
+        x: x.trim(),
+        y: y.trim(),
+        z: z.trim()
+      };
+    })
+    .filter(
+      (point) =>
+        /^-?\d+(?:[.,]\d+)?$/.test(point.x) &&
+        /^-?\d+(?:[.,]\d+)?$/.test(point.y) &&
+        /^-?\d+(?:[.,]\d+)?$/.test(point.z)
+    );
+}
+
+function isThreeDimensionalGraphMode(mode: GraphBlock["mode"]) {
+  return mode === "line3d" || mode === "scatter3d";
+}
+
 function buildGraphBlock(block: GraphBlock) {
+  if (isThreeDimensionalGraphMode(block.mode)) {
+    return buildGraph3DBlock(block);
+  }
+
   const series = block.series
     .map((item) => ({
       ...item,
@@ -1038,6 +1168,295 @@ ${plots}
 `;
 }
 
+function buildGraph3DBlock(block: GraphBlock) {
+  const series = block.series
+    .map((item) => ({
+      ...item,
+      points: parseGraphPoints3D(item.points)
+    }))
+    .filter((item) => item.points.length > 0);
+
+  if (series.length === 0) {
+    return "";
+  }
+
+  const axisOptions = [
+    "width=0.92\\textwidth",
+    "height=0.56\\textwidth",
+    "view={55}{28}",
+    "grid=both",
+    "major grid style={draw=gray!35}",
+    "minor grid style={draw=gray!20}",
+    "axis lines=left",
+    `xlabel={${renderTextBlockContent(block.xLabel)}}`,
+    `ylabel={${renderTextBlockContent(block.yLabel)}}`,
+    `zlabel={${renderTextBlockContent(block.zLabel)}}`,
+    `title={${renderTextBlockContent(block.title)}}`
+  ];
+
+  if (block.startAtZero) {
+    axisOptions.push("xmin=0");
+    axisOptions.push("ymin=0");
+    axisOptions.push("zmin=0");
+  }
+
+  if (series.some((item) => item.label.trim())) {
+    axisOptions.push("legend cell align={left}");
+    axisOptions.push("legend pos=north west");
+  }
+
+  const plots = series
+    .map((item) => {
+      const coordinates = item.points
+        .map((point) => {
+          const x = point.x.replace(",", ".");
+          const y = point.y.replace(",", ".");
+          const z = point.z.replace(",", ".");
+
+          return `(${x},${y},${z})`;
+        })
+        .join(" ");
+
+      const plotOptions =
+        block.mode === "scatter3d"
+          ? `only marks, mark=*, color=${latexOptionEscape(item.color)}`
+          : `thick, mark=*, color=${latexOptionEscape(item.color)}`;
+      const legend = item.label.trim() ? `\n        \\addlegendentry{${renderTextBlockContent(item.label)}}` : "";
+
+      return `        \\addplot3+[${plotOptions}] coordinates { ${coordinates} };${legend}`;
+    })
+    .join("\n");
+
+  return String.raw`
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[${axisOptions.join(", ")}]
+${plots}
+      \end{axis}
+    \end{tikzpicture}
+    \caption{- ${renderTextBlockContent(block.caption)}}
+\end{figure}
+
+`;
+}
+
+function parsePositiveNumber(value: string, fallback: number) {
+  const parsed = Number.parseFloat(value.trim().replace(",", "."));
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+function formatTikzNumber(value: number) {
+  return value.toFixed(4).replace(/\.?0+$/, "");
+}
+
+function cadVisualScale(...values: number[]) {
+  const maxValue = Math.max(...values, 1);
+
+  return Math.min(1, 6 / maxValue);
+}
+
+function cadDimensionText(label: string, value: string, units: string) {
+  const trimmedValue = value.trim();
+  const trimmedUnits = units.trim();
+  const unitSuffix = trimmedUnits ? ` ${trimmedUnits}` : "";
+
+  return `${label} = ${trimmedValue}${unitSuffix}`;
+}
+
+function cadColor(color: string) {
+  return latexOptionEscape(color || "teal");
+}
+
+function buildCadBlock(block: CadBlock) {
+  const color = cadColor(block.color);
+  const units = block.units.trim();
+  const width = parsePositiveNumber(block.width, 80);
+  const depth = parsePositiveNumber(block.depth, 50);
+  const height = parsePositiveNumber(block.height, 35);
+  const diameter = parsePositiveNumber(block.diameter, 40);
+  const radius = diameter / 2;
+  const scale =
+    block.shape === "box"
+      ? cadVisualScale(width, depth, height)
+      : block.shape === "sphere"
+        ? cadVisualScale(diameter)
+        : cadVisualScale(diameter, height);
+  const title = block.title.trim() ? `    \\textbf{${renderTextBlockContent(block.title)}}\\par\\smallskip\n` : "";
+  const drawing =
+    block.shape === "box"
+      ? buildCadBoxDrawing(block, width, depth, height, scale, color, units)
+      : block.shape === "cylinder"
+        ? buildCadCylinderDrawing(block, radius, height, scale, color, units)
+        : block.shape === "cone"
+          ? buildCadConeDrawing(block, radius, height, scale, color, units)
+          : buildCadSphereDrawing(block, radius, scale, color, units);
+
+  return String.raw`
+\begin{figure}[H]
+    \centering
+${title}
+${drawing}
+    \caption{- ${renderTextBlockContent(block.caption)}}
+\end{figure}
+
+`;
+}
+
+function buildCadBoxDrawing(
+  block: CadBlock,
+  width: number,
+  depth: number,
+  height: number,
+  scale: number,
+  color: string,
+  units: string
+) {
+  const w = formatTikzNumber(width);
+  const d = formatTikzNumber(depth);
+  const h = formatTikzNumber(height);
+  const s = formatTikzNumber(scale);
+  const dimX = cadDimensionText("X", block.width || formatTikzNumber(width), units);
+  const dimY = cadDimensionText("Y", block.depth || formatTikzNumber(depth), units);
+  const dimZ = cadDimensionText("Z", block.height || formatTikzNumber(height), units);
+  const dimensions = block.showDimensions
+    ? String.raw`
+        \draw[caddim] (0,-6,0) -- node[cadlabel, below] {${renderTextBlockContent(dimX)}} (${w},-6,0);
+        \draw[caddim] (${w},0,0) -- node[cadlabel, below right] {${renderTextBlockContent(dimY)}} (${w},${d},0);
+        \draw[caddim] (${w},${d},0) -- node[cadlabel, right] {${renderTextBlockContent(dimZ)}} (${w},${d},${h});`
+    : "";
+
+  return String.raw`    \begin{tikzpicture}[
+      x={(1cm,0cm)},
+      y={(0.52cm,0.28cm)},
+      z={(0cm,1cm)},
+      scale=${s},
+      line join=round,
+      line cap=round
+    ]
+      \tikzset{
+        cadedge/.style={draw=black!82, line width=0.7pt},
+        cadfacea/.style={draw=black!82, fill=${color}!12},
+        cadfaceb/.style={draw=black!82, fill=${color}!20},
+        cadfacec/.style={draw=black!82, fill=${color}!30},
+        caddim/.style={<->, >=Stealth, draw=black!78, line width=0.55pt},
+        cadlabel/.style={fill=white, inner sep=1.2pt, font=\scriptsize}
+      }
+      \coordinate (O) at (0,0,0);
+      \coordinate (A) at (${w},0,0);
+      \coordinate (B) at (${w},${d},0);
+      \coordinate (C) at (0,${d},0);
+      \coordinate (Oz) at (0,0,${h});
+      \coordinate (Az) at (${w},0,${h});
+      \coordinate (Bz) at (${w},${d},${h});
+      \coordinate (Cz) at (0,${d},${h});
+
+      \filldraw[cadfacea] (O) -- (A) -- (B) -- (C) -- cycle;
+      \filldraw[cadfaceb] (A) -- (B) -- (Bz) -- (Az) -- cycle;
+      \filldraw[cadfacec] (Oz) -- (Az) -- (Bz) -- (Cz) -- cycle;
+      \draw[cadedge] (O) -- (A) -- (B) -- (C) -- cycle;
+      \draw[cadedge] (Oz) -- (Az) -- (Bz) -- (Cz) -- cycle;
+      \draw[cadedge] (O) -- (Oz) (A) -- (Az) (B) -- (Bz) (C) -- (Cz);
+${dimensions}
+    \end{tikzpicture}`;
+}
+
+function buildCadCylinderDrawing(
+  block: CadBlock,
+  radius: number,
+  height: number,
+  scale: number,
+  color: string,
+  units: string
+) {
+  const r = formatTikzNumber(radius);
+  const h = formatTikzNumber(height);
+  const ry = formatTikzNumber(Math.max(radius * 0.28, 1));
+  const s = formatTikzNumber(scale);
+  const dimD = cadDimensionText("D", block.diameter || formatTikzNumber(radius * 2), units);
+  const dimH = cadDimensionText("H", block.height || formatTikzNumber(height), units);
+  const dimensions = block.showDimensions
+    ? String.raw`
+      \draw[caddim] (-${r},${formatTikzNumber(height + radius * 0.52)}) -- node[cadlabel, above] {${renderTextBlockContent(dimD)}} (${r},${formatTikzNumber(height + radius * 0.52)});
+      \draw[caddim] (${formatTikzNumber(radius + 8)},0) -- node[cadlabel, right] {${renderTextBlockContent(dimH)}} (${formatTikzNumber(radius + 8)},${h});`
+    : "";
+
+  return String.raw`    \begin{tikzpicture}[scale=${s}, line join=round, line cap=round]
+      \tikzset{
+        cadbody/.style={draw=black!82, fill=${color}!16},
+        cadtop/.style={draw=black!82, fill=${color}!28},
+        caddim/.style={<->, >=Stealth, draw=black!78, line width=0.55pt},
+        cadlabel/.style={fill=white, inner sep=1.2pt, font=\scriptsize}
+      }
+      \path[fill=${color}!12, draw=black!82] (-${r},0) arc[start angle=180,end angle=360,x radius=${r},y radius=${ry}] -- (${r},${h}) arc[start angle=0,end angle=180,x radius=${r},y radius=${ry}] -- cycle;
+      \draw[black!82] (-${r},0) -- (-${r},${h}) (${r},0) -- (${r},${h});
+      \draw[cadtop] (0,${h}) ellipse [x radius=${r}, y radius=${ry}];
+      \draw[black!82, dashed] (${r},0) arc[start angle=0,end angle=180,x radius=${r},y radius=${ry}];
+      \draw[black!82] (-${r},0) arc[start angle=180,end angle=360,x radius=${r},y radius=${ry}];
+${dimensions}
+    \end{tikzpicture}`;
+}
+
+function buildCadConeDrawing(
+  block: CadBlock,
+  radius: number,
+  height: number,
+  scale: number,
+  color: string,
+  units: string
+) {
+  const r = formatTikzNumber(radius);
+  const h = formatTikzNumber(height);
+  const ry = formatTikzNumber(Math.max(radius * 0.28, 1));
+  const s = formatTikzNumber(scale);
+  const dimD = cadDimensionText("D", block.diameter || formatTikzNumber(radius * 2), units);
+  const dimH = cadDimensionText("H", block.height || formatTikzNumber(height), units);
+  const dimensions = block.showDimensions
+    ? String.raw`
+      \draw[caddim] (-${r},${formatTikzNumber(radius * 0.58)}) -- node[cadlabel, above] {${renderTextBlockContent(dimD)}} (${r},${formatTikzNumber(radius * 0.58)});
+      \draw[caddim] (${formatTikzNumber(radius + 8)},0) -- node[cadlabel, right] {${renderTextBlockContent(dimH)}} (${formatTikzNumber(radius + 8)},${h});`
+    : "";
+
+  return String.raw`    \begin{tikzpicture}[scale=${s}, line join=round, line cap=round]
+      \tikzset{
+        caddim/.style={<->, >=Stealth, draw=black!78, line width=0.55pt},
+        cadlabel/.style={fill=white, inner sep=1.2pt, font=\scriptsize}
+      }
+      \path[fill=${color}!16, draw=black!82] (-${r},0) -- (0,${h}) -- (${r},0) arc[start angle=0,end angle=-180,x radius=${r},y radius=${ry}] -- cycle;
+      \draw[black!82, dashed] (${r},0) arc[start angle=0,end angle=180,x radius=${r},y radius=${ry}];
+      \draw[black!82] (-${r},0) arc[start angle=180,end angle=360,x radius=${r},y radius=${ry}];
+      \draw[black!82] (-${r},0) -- (0,${h}) -- (${r},0);
+${dimensions}
+    \end{tikzpicture}`;
+}
+
+function buildCadSphereDrawing(block: CadBlock, radius: number, scale: number, color: string, units: string) {
+  const r = formatTikzNumber(radius);
+  const s = formatTikzNumber(scale);
+  const ry = formatTikzNumber(Math.max(radius * 0.28, 1));
+  const dimD = cadDimensionText("D", block.diameter || formatTikzNumber(radius * 2), units);
+  const dimensions = block.showDimensions
+    ? String.raw`
+      \draw[caddim] (-${r},${formatTikzNumber(-radius - 8)}) -- node[cadlabel, below] {${renderTextBlockContent(dimD)}} (${r},${formatTikzNumber(-radius - 8)});`
+    : "";
+
+  return String.raw`    \begin{tikzpicture}[scale=${s}, line join=round, line cap=round]
+      \tikzset{
+        caddim/.style={<->, >=Stealth, draw=black!78, line width=0.55pt},
+        cadlabel/.style={fill=white, inner sep=1.2pt, font=\scriptsize}
+      }
+      \draw[draw=black!82, fill=${color}!16] (0,0) circle [radius=${r}];
+      \draw[black!70] (0,0) ellipse [x radius=${r}, y radius=${ry}];
+      \draw[black!60, dashed] (0,0) ellipse [x radius=${ry}, y radius=${r}];
+${dimensions}
+    \end{tikzpicture}`;
+}
+
 function buildPreamble() {
   return String.raw`\documentclass[14pt]{extarticle}
 
@@ -1076,14 +1495,14 @@ function buildPreamble() {
 \usepackage{geometry}
 \geometry{
   a4paper,
-  left=3cm,
+  left=2cm,
   right=1.5cm,
   top=2cm,
-  bottom=2cm
+  bottom=2.5cm
 }
 
 \usepackage{setspace}
-\onehalfspacing
+\singlespacing
 \usepackage{microtype}
 \microtypesetup{expansion=false}
 \usepackage{xurl}
@@ -1094,6 +1513,7 @@ function buildPreamble() {
 
 % ===== Картинки =====
 \usepackage{tikz}
+\usetikzlibrary{arrows.meta}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \usepackage{graphicx}
@@ -1372,6 +1792,11 @@ function buildBlocks(
       return;
     }
 
+    if (block.type === "cad") {
+      out += buildCadBlock(block);
+      return;
+    }
+
     if (block.type === "list") {
       const tag = block.ordered ? "enumerate" : "itemize";
 
@@ -1492,6 +1917,35 @@ function normalizeBlock(block: ReportBlock): ReportBlock {
     };
   }
 
+  if (block.type === "cad") {
+    const legacyBlock = block as CadBlock & {
+      caption?: string;
+      title?: string;
+      shape?: CadShape;
+      width?: string;
+      depth?: string;
+      height?: string;
+      diameter?: string;
+      units?: string;
+      color?: string;
+      showDimensions?: boolean;
+    };
+
+    return {
+      ...legacyBlock,
+      caption: legacyBlock.caption ?? "Объемная фигура",
+      title: legacyBlock.title ?? "Эскиз детали",
+      shape: legacyBlock.shape ?? "box",
+      width: legacyBlock.width ?? "80",
+      depth: legacyBlock.depth ?? "50",
+      height: legacyBlock.height ?? "35",
+      diameter: legacyBlock.diameter ?? "40",
+      units: legacyBlock.units ?? "мм",
+      color: legacyBlock.color ?? "teal",
+      showDimensions: legacyBlock.showDimensions ?? true
+    };
+  }
+
   if (block.type !== "graph") {
     return block;
   }
@@ -1520,6 +1974,7 @@ function normalizeBlock(block: ReportBlock): ReportBlock {
 
   return {
     ...legacyBlock,
+    zLabel: legacyBlock.zLabel ?? "Z",
     startAtZero: legacyBlock.startAtZero ?? true,
     series
   };
